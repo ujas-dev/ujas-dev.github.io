@@ -698,8 +698,9 @@ footer a:hover{color:var(--cyan)}
       onerror="this.style.display='none';document.getElementById('nav-av-fb').style.display='flex'"/>
     <div class="nav-av-fb" id="nav-av-fb" style="display:none">UD</div>
     <div class="nav-txt">
-      <span class="nav-name">Ujas Dubal</span>
+      <span class="nav-name">Ujas J. Dubal</span>
       <span class="nav-sub">AWS Data Engineer</span>
+      <span class="nav-sub">Technical Lead</span>
     </div>
   </button>
 
@@ -1399,65 +1400,140 @@ function fmtDate(s){
 /* ══════════════════════════════════════════════════════
    XML PARSER — handles RSS 2.0, Atom, YouTube Atom, Blogger Atom
 ══════════════════════════════════════════════════════ */
+// function parseXML(raw){
+//   try{
+//     const xmlStr=(typeof raw==='object'&&raw.contents)?raw.contents:raw;
+//     if(!xmlStr||xmlStr.trim().length<50) return null;
+//     const xml=new DOMParser().parseFromString(xmlStr,'application/xml');
+//     const parseErr=xml.querySelector('parsererror');
+//     if(parseErr) return null;
+
+//     /* Support RSS <item> and Atom <entry> */
+//     const items=[...xml.querySelectorAll('item,entry')];
+//     if(!items.length) return null;
+
+//     return items.slice(0,20).map(item=>{
+//       /* Title */
+//       const title=item.querySelector('title')?.textContent?.trim()||'';
+
+//       /* Link — RSS uses <link> text, Atom uses <link href="..."> */
+//       let link='#';
+//       const linkEl=item.querySelector('link');
+//       if(linkEl){
+//         link=linkEl.getAttribute('href')||linkEl.textContent?.trim()||'#';
+//       }
+//       /* Atom alternate link */
+//       if(link==='#'||link===''){
+//         const altLink=[...item.querySelectorAll('link')].find(l=>l.getAttribute('rel')==='alternate');
+//         if(altLink) link=altLink.getAttribute('href')||'#';
+//       }
+
+//       /* Date */
+//       const pubDate=
+//         item.querySelector('pubDate')?.textContent?.trim()||
+//         item.querySelector('published')?.textContent?.trim()||
+//         item.querySelector('updated')?.textContent?.trim()||'';
+
+//       /* YouTube thumbnail — yt:videoId exists in YouTube Atom feeds */
+//       const NS_YT='http://www.youtube.com/xml/schemas/2015';
+//       const NS_MEDIA='http://search.yahoo.com/mrss/';
+
+//       const ytIdEl=
+//         item.getElementsByTagNameNS(NS_YT,'videoId')[0]||
+//         item.querySelector('videoId');
+//       const ytId=ytIdEl?.textContent?.trim()||'';
+
+//       const thumbEl=
+//         item.getElementsByTagNameNS(NS_MEDIA,'thumbnail')[0]||
+//         item.querySelector('thumbnail');
+//       const thumbUrl=thumbEl?.getAttribute('url')||'';
+
+//       const thumbnail=
+//         thumbUrl||
+//         (ytId?`https://i.ytimg.com/vi/${ytId}/mqdefault.jpg`:'');
+
+//       /* Source channel name */
+//       const source=
+//         xml.querySelector('channel > title, feed > title')?.textContent?.trim()||'';
+
+//       return{title:stripHtml(title),pubDate,link,thumbnail,ytId,source};
+//     }).filter(x=>x.title&&x.title.length>1);
+//   }catch(e){return null;}
+// }
+
+/* ══════════════════════════════════════════════════════
+   XML PARSER v3 — RSS 2.0, Atom, YouTube Atom, Blogger Atom
+══════════════════════════════════════════════════════ */
 function parseXML(raw){
   try{
-    const xmlStr=(typeof raw==='object'&&raw.contents)?raw.contents:raw;
-    if(!xmlStr||xmlStr.trim().length<50) return null;
-    const xml=new DOMParser().parseFromString(xmlStr,'application/xml');
-    const parseErr=xml.querySelector('parsererror');
-    if(parseErr) return null;
+    if(!raw) return null;
+    /* allorigins sometimes double-encodes — unwrap if needed */
+    let xmlStr = (typeof raw === 'object' && raw.contents) ? raw.contents : raw;
+    if(typeof xmlStr !== 'string' || xmlStr.trim().length < 30) return null;
 
-    /* Support RSS <item> and Atom <entry> */
-    const items=[...xml.querySelectorAll('item,entry')];
+    const xml = new DOMParser().parseFromString(xmlStr, 'application/xml');
+    if(xml.querySelector('parsererror')) return null;
+
+    const items = [...xml.querySelectorAll('item, entry')];
     if(!items.length) return null;
 
-    return items.slice(0,20).map(item=>{
-      /* Title */
-      const title=item.querySelector('title')?.textContent?.trim()||'';
+    /* Channel/feed title for source label */
+    const feedTitle =
+      xml.querySelector('channel > title')?.textContent?.trim() ||
+      xml.querySelector('feed > title')?.textContent?.trim()  || '';
 
-      /* Link — RSS uses <link> text, Atom uses <link href="..."> */
-      let link='#';
-      const linkEl=item.querySelector('link');
-      if(linkEl){
-        link=linkEl.getAttribute('href')||linkEl.textContent?.trim()||'#';
+    return items.slice(0, 20).map(item => {
+      /* ── Title ── */
+      const title = item.querySelector('title')?.textContent?.trim() || '';
+
+      /* ── Link — handles both RSS <link>text</link> and Atom <link href=""/> ── */
+      let link = '#';
+      const allLinks = [...item.querySelectorAll('link')];
+      /* Prefer Atom alternate link */
+      const altLink = allLinks.find(l =>
+        l.getAttribute('rel') === 'alternate' || l.getAttribute('rel') === null
+      );
+      if(altLink){
+        link = altLink.getAttribute('href') || altLink.textContent?.trim() || '#';
+      } else if(allLinks[0]){
+        link = allLinks[0].getAttribute('href') || allLinks[0].textContent?.trim() || '#';
       }
-      /* Atom alternate link */
-      if(link==='#'||link===''){
-        const altLink=[...item.querySelectorAll('link')].find(l=>l.getAttribute('rel')==='alternate');
-        if(altLink) link=altLink.getAttribute('href')||'#';
+      /* RSS guid as fallback */
+      if(!link || link === '#'){
+        link = item.querySelector('guid')?.textContent?.trim() || '#';
       }
 
-      /* Date */
-      const pubDate=
-        item.querySelector('pubDate')?.textContent?.trim()||
-        item.querySelector('published')?.textContent?.trim()||
-        item.querySelector('updated')?.textContent?.trim()||'';
+      /* ── Date ── */
+      const pubDate =
+        item.querySelector('pubDate')?.textContent?.trim()   ||
+        item.querySelector('published')?.textContent?.trim() ||
+        item.querySelector('updated')?.textContent?.trim()   || '';
 
-      /* YouTube thumbnail — yt:videoId exists in YouTube Atom feeds */
-      const NS_YT='http://www.youtube.com/xml/schemas/2015';
-      const NS_MEDIA='http://search.yahoo.com/mrss/';
+      /* ── YouTube thumbnail via yt:videoId ── */
+      /* getElementsByTagNameNS is the only reliable way for namespaced tags */
+      const ytIdEl =
+        item.getElementsByTagNameNS('http://www.youtube.com/xml/schemas/2015', 'videoId')[0];
+      const ytId = ytIdEl?.textContent?.trim() || '';
 
-      const ytIdEl=
-        item.getElementsByTagNameNS(NS_YT,'videoId')[0]||
-        item.querySelector('videoId');
-      const ytId=ytIdEl?.textContent?.trim()||'';
+      const mediaThumbEl =
+        item.getElementsByTagNameNS('http://search.yahoo.com/mrss/', 'thumbnail')[0];
+      const mediaThumbUrl = mediaThumbEl?.getAttribute('url') || '';
 
-      const thumbEl=
-        item.getElementsByTagNameNS(NS_MEDIA,'thumbnail')[0]||
-        item.querySelector('thumbnail');
-      const thumbUrl=thumbEl?.getAttribute('url')||'';
+      const thumbnail =
+        mediaThumbUrl ||
+        (ytId ? `https://i.ytimg.com/vi/${ytId}/mqdefault.jpg` : '');
 
-      const thumbnail=
-        thumbUrl||
-        (ytId?`https://i.ytimg.com/vi/${ytId}/mqdefault.jpg`:'');
+      return {
+        title:     stripHtml(title),
+        pubDate,
+        link,
+        thumbnail,
+        ytId,
+        source:    feedTitle,
+      };
+    }).filter(x => x.title && x.title.length > 1);
 
-      /* Source channel name */
-      const source=
-        xml.querySelector('channel > title, feed > title')?.textContent?.trim()||'';
-
-      return{title:stripHtml(title),pubDate,link,thumbnail,ytId,source};
-    }).filter(x=>x.title&&x.title.length>1);
-  }catch(e){return null;}
+  }catch(e){ return null; }
 }
 
 // async function fetchRSS(rssUrl){
@@ -1497,103 +1573,207 @@ function parseXML(raw){
 /* ══════════════════════════════════════════════════════
    RSS PROXY WATERFALL — fixed order per URL type
 ══════════════════════════════════════════════════════ */
+// async function fetchRSS(rssUrl){
+//   const isYouTube=rssUrl.includes('youtube.com/feeds');
+//   const isBlogger=rssUrl.includes('blogspot.com')||rssUrl.includes('blogger.com');
+
+//   /* For YouTube and Blogger — skip rss2json (it rejects these with 422)
+//      Go straight to allorigins which handles raw Atom XML perfectly      */
+//   if(isYouTube||isBlogger){
+
+//     /* Strategy A — allorigins (best for YouTube + Blogger Atom) */
+//     try{
+//       const r=await fetch(
+//         `https://api.allorigins.win/get?url=${encodeURIComponent(rssUrl)}`,
+//         {signal:AbortSignal.timeout(8000)}
+//       );
+//       if(r.ok){
+//         const d=await r.json();
+//         const items=parseXML(d.contents||d);
+//         if(items?.length) return items;
+//       }
+//     }catch(e){}
+
+//     /* Strategy B — use a different CORS proxy: htmldriven */
+//     try{
+//       const r=await fetch(
+//         `https://cors-anywhere.herokuapp.com/${rssUrl}`,
+//         {signal:AbortSignal.timeout(8000),headers:{'X-Requested-With':'XMLHttpRequest'}}
+//       );
+//       if(r.ok){
+//         const txt=await r.text();
+//         const items=parseXML(txt);
+//         if(items?.length) return items;
+//       }
+//     }catch(e){}
+
+//     /* Strategy C — thingproxy */
+//     try{
+//       const r=await fetch(
+//         `https://thingproxy.freeboard.io/fetch/${rssUrl}`,
+//         {signal:AbortSignal.timeout(8000)}
+//       );
+//       if(r.ok){
+//         const txt=await r.text();
+//         const items=parseXML(txt);
+//         if(items?.length) return items;
+//       }
+//     }catch(e){}
+
+//     return null;
+//   }
+
+//   /* For all other feeds — original 3-proxy strategy */
+
+//   /* Strategy 1 — rss2json */
+//   try{
+//     const r=await fetch(
+//       `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}&count=20`,
+//       {signal:AbortSignal.timeout(7000)}
+//     );
+//     if(r.ok){
+//       const d=await r.json();
+//       if(d.status==='ok'&&d.items?.length){
+//         return d.items.map(it=>({
+//           title:stripHtml(it.title),
+//           pubDate:it.pubDate,
+//           link:it.link||it.guid||'#',
+//           thumbnail:it.thumbnail||it.enclosure?.link||'',
+//           source:d.feed?.title||'',
+//         }));
+//       }
+//     }
+//   }catch(e){}
+
+//   /* Strategy 2 — allorigins */
+//   try{
+//     const r=await fetch(
+//       `https://api.allorigins.win/get?url=${encodeURIComponent(rssUrl)}`,
+//       {signal:AbortSignal.timeout(7000)}
+//     );
+//     if(r.ok){
+//       const d=await r.json();
+//       const items=parseXML(d.contents||d);
+//       if(items?.length) return items;
+//     }
+//   }catch(e){}
+
+//   /* Strategy 3 — corsproxy.io */
+//   try{
+//     const r=await fetch(
+//       `https://corsproxy.io/?${encodeURIComponent(rssUrl)}`,
+//       {signal:AbortSignal.timeout(7000)}
+//     );
+//     if(r.ok){
+//       const txt=await r.text();
+//       const items=parseXML(txt);
+//       if(items?.length) return items;
+//     }
+//   }catch(e){}
+
+//   return null;
+// }
+
+/* ══════════════════════════════════════════════════════
+   RSS PROXY WATERFALL v3 — works for YouTube, Blogger, all feeds
+══════════════════════════════════════════════════════ */
 async function fetchRSS(rssUrl){
-  const isYouTube=rssUrl.includes('youtube.com/feeds');
-  const isBlogger=rssUrl.includes('blogspot.com')||rssUrl.includes('blogger.com');
+  const isYouTube = rssUrl.includes('youtube.com/feeds');
+  const isBlogger = rssUrl.includes('blogspot.com') || rssUrl.includes('blogger.com');
+  const isSpecial = isYouTube || isBlogger;
 
-  /* For YouTube and Blogger — skip rss2json (it rejects these with 422)
-     Go straight to allorigins which handles raw Atom XML perfectly      */
-  if(isYouTube||isBlogger){
+  /* ── PROXY LIST ──────────────────────────────────────────────
+     Ordered by reliability. Each returns raw XML or JSON wrapper.
+     allorigins and rssbridge work for YouTube + Blogger.
+     rss2json works for standard RSS but rejects YouTube/Blogger.
+  ────────────────────────────────────────────────────────────── */
+  const proxies = isSpecial
+    ? [
+        /* Proxy 1 — allorigins: wraps response in {contents:'...'} */
+        async u => {
+          const r = await fetch(
+            `https://api.allorigins.win/get?url=${encodeURIComponent(u)}`,
+            { signal: AbortSignal.timeout(9000) }
+          );
+          if(!r.ok) return null;
+          const d = await r.json();
+          return parseXML(d.contents);
+        },
+        /* Proxy 2 — allorigins raw: returns XML directly */
+        async u => {
+          const r = await fetch(
+            `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
+            { signal: AbortSignal.timeout(9000) }
+          );
+          if(!r.ok) return null;
+          const txt = await r.text();
+          return parseXML(txt);
+        },
+        /* Proxy 3 — rssbridge public instance */
+        async u => {
+          const r = await fetch(
+            `https://rss-bridge.org/bridge01/?action=display&bridge=FeedMergeBridge&format=Atom&url_1=${encodeURIComponent(u)}`,
+            { signal: AbortSignal.timeout(9000) }
+          );
+          if(!r.ok) return null;
+          const txt = await r.text();
+          return parseXML(txt);
+        },
+        /* Proxy 4 — corsproxy.io (sometimes works for Blogger) */
+        async u => {
+          const r = await fetch(
+            `https://corsproxy.io/?${encodeURIComponent(u)}`,
+            { signal: AbortSignal.timeout(9000) }
+          );
+          if(!r.ok) return null;
+          const txt = await r.text();
+          return parseXML(txt);
+        },
+      ]
+    : [
+        /* Standard feeds: rss2json first (best quality + thumbnails) */
+        async u => {
+          const r = await fetch(
+            `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(u)}&count=20`,
+            { signal: AbortSignal.timeout(7000) }
+          );
+          if(!r.ok) return null;
+          const d = await r.json();
+          if(d.status !== 'ok' || !d.items?.length) return null;
+          return d.items.map(it => ({
+            title:     stripHtml(it.title),
+            pubDate:   it.pubDate,
+            link:      it.link || it.guid || '#',
+            thumbnail: it.thumbnail || it.enclosure?.link || '',
+            source:    d.feed?.title || '',
+          }));
+        },
+        async u => {
+          const r = await fetch(
+            `https://api.allorigins.win/get?url=${encodeURIComponent(u)}`,
+            { signal: AbortSignal.timeout(7000) }
+          );
+          if(!r.ok) return null;
+          const d = await r.json();
+          return parseXML(d.contents);
+        },
+        async u => {
+          const r = await fetch(
+            `https://corsproxy.io/?${encodeURIComponent(u)}`,
+            { signal: AbortSignal.timeout(7000) }
+          );
+          if(!r.ok) return null;
+          return parseXML(await r.text());
+        },
+      ];
 
-    /* Strategy A — allorigins (best for YouTube + Blogger Atom) */
+  /* Try each proxy in order, return first success */
+  for(const proxy of proxies){
     try{
-      const r=await fetch(
-        `https://api.allorigins.win/get?url=${encodeURIComponent(rssUrl)}`,
-        {signal:AbortSignal.timeout(8000)}
-      );
-      if(r.ok){
-        const d=await r.json();
-        const items=parseXML(d.contents||d);
-        if(items?.length) return items;
-      }
-    }catch(e){}
-
-    /* Strategy B — use a different CORS proxy: htmldriven */
-    try{
-      const r=await fetch(
-        `https://cors-anywhere.herokuapp.com/${rssUrl}`,
-        {signal:AbortSignal.timeout(8000),headers:{'X-Requested-With':'XMLHttpRequest'}}
-      );
-      if(r.ok){
-        const txt=await r.text();
-        const items=parseXML(txt);
-        if(items?.length) return items;
-      }
-    }catch(e){}
-
-    /* Strategy C — thingproxy */
-    try{
-      const r=await fetch(
-        `https://thingproxy.freeboard.io/fetch/${rssUrl}`,
-        {signal:AbortSignal.timeout(8000)}
-      );
-      if(r.ok){
-        const txt=await r.text();
-        const items=parseXML(txt);
-        if(items?.length) return items;
-      }
-    }catch(e){}
-
-    return null;
+      const items = await proxy(rssUrl);
+      if(items && items.length > 0) return items;
+    }catch(e){ /* try next */ }
   }
-
-  /* For all other feeds — original 3-proxy strategy */
-
-  /* Strategy 1 — rss2json */
-  try{
-    const r=await fetch(
-      `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}&count=20`,
-      {signal:AbortSignal.timeout(7000)}
-    );
-    if(r.ok){
-      const d=await r.json();
-      if(d.status==='ok'&&d.items?.length){
-        return d.items.map(it=>({
-          title:stripHtml(it.title),
-          pubDate:it.pubDate,
-          link:it.link||it.guid||'#',
-          thumbnail:it.thumbnail||it.enclosure?.link||'',
-          source:d.feed?.title||'',
-        }));
-      }
-    }
-  }catch(e){}
-
-  /* Strategy 2 — allorigins */
-  try{
-    const r=await fetch(
-      `https://api.allorigins.win/get?url=${encodeURIComponent(rssUrl)}`,
-      {signal:AbortSignal.timeout(7000)}
-    );
-    if(r.ok){
-      const d=await r.json();
-      const items=parseXML(d.contents||d);
-      if(items?.length) return items;
-    }
-  }catch(e){}
-
-  /* Strategy 3 — corsproxy.io */
-  try{
-    const r=await fetch(
-      `https://corsproxy.io/?${encodeURIComponent(rssUrl)}`,
-      {signal:AbortSignal.timeout(7000)}
-    );
-    if(r.ok){
-      const txt=await r.text();
-      const items=parseXML(txt);
-      if(items?.length) return items;
-    }
-  }catch(e){}
 
   return null;
 }

@@ -2,11 +2,23 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8"/>
-  <title>Ujas Dubal | AWS Data Engineer</title>
+  <title>Ujas Dubal | AWS Data Engineer · 3D World</title>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <meta name="description" content="Ujas Dubal – AWS Data Engineer & Technical Lead. Interactive Tron-style 3D data world portfolio."/>
+  <meta name="description" content="Ujas Dubal – AWS Data Engineer. Interactive Tron-style 3D data world."/>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap"/>
   <link rel="stylesheet" href="assets/style.css"/>
+
+  <!-- ES Module importmap — eliminates the deprecation warning -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.163.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.163.0/examples/jsm/"
+    }
+  }
+  </script>
 </head>
 <body>
 
@@ -19,12 +31,12 @@
       <div id="tb-left">
         <img id="ava-img" src="assets/avatar.jpg" alt="Ujas" onerror="this.style.display='none'"/>
         <div>
-          <div id="tb-name">Ujas Dubal</div>
-          <div id="tb-role">AWS Data Engineer</div>
+          <div id="tb-name">UJAS DUBAL</div>
+          <div id="tb-role">AWS DATA ENGINEER · TECHNICAL LEAD</div>
         </div>
       </div>
       <nav id="zone-nav">
-        <button class="znav" data-zone="0">⬡ HOME</button>
+        <button class="znav active" data-zone="0">⬡ HOME</button>
         <button class="znav" data-zone="1">◈ ABOUT</button>
         <button class="znav" data-zone="2">◉ SKILLS</button>
         <button class="znav" data-zone="3">▲ CAREER</button>
@@ -34,107 +46,128 @@
       </nav>
       <div id="tb-right">
         <button id="btn-music">⬡ MUSIC</button>
-        <button id="btn-news">◈ AI NEWS</button>
+        <button id="btn-news">◈ LIVE NEWS</button>
       </div>
     </div>
 
-    <!-- AIDA AVATAR -->
+    <!-- AIDA 2D CANVAS AVATAR -->
     <div id="aida-wrap">
-      <canvas id="aida-canvas" width="120" height="160"></canvas>
-      <div id="aida-name-tag">AIDA</div>
+      <canvas id="aida-canvas" width="110" height="150"></canvas>
+      <div id="aida-nametag">A·I·D·A</div>
     </div>
 
-    <!-- AIDA SPEECH BUBBLE -->
+    <!-- SPEECH BUBBLE -->
     <div id="speech-bubble">
-      <div id="speech-zone-tag"></div>
-      <div id="speech-text">Initialising Data World...</div>
+      <div id="speech-zone"></div>
+      <div id="speech-text">Initialising Tron Data World…</div>
       <div id="speech-btns">
         <button id="btn-repeat">↺ REPEAT</button>
         <button id="btn-stop">◼ STOP</button>
       </div>
     </div>
 
-    <!-- INFO PANEL -->
+    <!-- INFO PANEL (right side) -->
     <div id="info-panel" class="hidden">
-      <div id="info-header">
-        <span id="info-title-txt"></span>
-        <button id="info-speak-btn" title="Read aloud">▶ HEAR</button>
-        <button id="info-close">✕</button>
+      <div id="info-head">
+        <span id="info-title"></span>
+        <div style="display:flex;gap:5px">
+          <button id="info-read" title="Read aloud">▶ HEAR</button>
+          <button id="info-close">✕</button>
+        </div>
       </div>
       <div id="info-body"></div>
     </div>
 
-    <!-- ZONE LABEL (centre top) -->
+    <!-- ZONE LABEL -->
     <div id="zone-lbl"></div>
 
-    <!-- SECTION TOOLTIP (hover) -->
-    <div id="obj-tooltip" class="hidden"></div>
+    <!-- HOVER TOOLTIP -->
+    <div id="tooltip" class="hidden"></div>
 
     <!-- CONTROLS -->
     <div id="ctrl-hint">
       <span>🖱 Drag=Orbit</span>
-      <span>🖱 Scroll=Zoom</span>
+      <span>Scroll=Zoom</span>
       <span>👆 Click=Inspect</span>
-      <span>1-7=Jump Zone</span>
+      <span>1-7=Zone</span>
     </div>
 
     <!-- NEWS PANEL -->
     <div id="news-panel" class="hidden">
-      <div id="news-header">
-        <span>◈ LIVE DATA FEED</span>
-        <button id="news-close">✕</button>
+      <div id="news-head">
+        <span>◈ GLOBAL LIVE NEWS FEED</span>
+        <div style="display:flex;gap:5px;align-items:center">
+          <select id="news-category">
+            <option value="tech">Technology</option>
+            <option value="ai">AI / LLMs</option>
+            <option value="data">Data Engineering</option>
+            <option value="world">World News</option>
+            <option value="science">Science</option>
+          </select>
+          <button id="news-close">✕</button>
+        </div>
       </div>
-      <div id="news-list"></div>
+      <div id="news-list"><div class="news-loading">◉ FETCHING GLOBAL DATA FEED…</div></div>
     </div>
 
     <!-- CONTACT MODAL -->
     <div id="contact-modal" class="hidden">
       <div id="contact-box">
         <button id="contact-close">✕</button>
-        <div id="contact-title">⟡ TRANSMIT MESSAGE</div>
-        <p id="contact-sub">Direct transmission to Ujas Dubal</p>
-        <div id="contact-form-wrap">
-          <label>IDENTIFICATION<input type="text" id="cf-name" placeholder="Your name" required/></label>
-          <label>COMM ADDRESS<input type="email" id="cf-email" placeholder="your@email.com" required/></label>
-          <label>TRANSMISSION<textarea id="cf-msg" rows="4" placeholder="Your message..." required></textarea></label>
-          <button id="cf-send">⟡ TRANSMIT →</button>
-          <div id="cf-status"></div>
-        </div>
+        <div id="contact-title">⟡ TRANSMIT MESSAGE TO UJAS</div>
+        <p id="contact-sub">Direct line · ujasdubal@gmail.com</p>
+        <label>IDENTIFICATION<input type="text" id="cf-name" placeholder="Your name" autocomplete="name"/></label>
+        <label>COMM ADDRESS<input type="email" id="cf-email" placeholder="your@email.com" autocomplete="email"/></label>
+        <label>TRANSMISSION<textarea id="cf-msg" rows="4" placeholder="Your message…"></textarea></label>
+        <button id="cf-send">⟡ TRANSMIT →</button>
+        <div id="cf-status"></div>
         <div id="contact-links">
-          <a href="mailto:ujasdubal@gmail.com" target="_blank" rel="noopener">✉ ujasdubal@gmail.com</a>
-          <a href="https://www.linkedin.com/in/ujasdubal" target="_blank" rel="noopener">◈ LinkedIn Profile</a>
+          <a href="mailto:ujasdubal@gmail.com">✉ ujasdubal@gmail.com</a>
+          <a href="https://www.linkedin.com/in/ujasdubal" target="_blank" rel="noopener">◈ LinkedIn</a>
           <a href="https://github.com/ujas-dev" target="_blank" rel="noopener">⬡ GitHub</a>
           <span>⬟ Ahmedabad, Gujarat, India</span>
         </div>
       </div>
     </div>
 
+    <!-- ARTICLE MODAL (full news article view) -->
+    <div id="article-modal" class="hidden">
+      <div id="article-box">
+        <div id="article-head">
+          <span id="article-source"></span>
+          <div style="display:flex;gap:5px">
+            <button id="article-read">▶ AIDA READS</button>
+            <button id="article-open">↗ OPEN ORIGINAL</button>
+            <button id="article-close">✕</button>
+          </div>
+        </div>
+        <h2 id="article-title"></h2>
+        <div id="article-meta"></div>
+        <div id="article-content"></div>
+      </div>
+    </div>
+
     <!-- START OVERLAY -->
     <div id="start-overlay">
-      <div id="start-box">
-        <div id="start-grid"></div>
-        <div id="start-content">
-          <div id="start-logo">🤖</div>
-          <h1>UJAS.WORLD</h1>
-          <div id="start-sub">AWS Data Engineer · Technical Lead · 8.5+ Years</div>
-          <p>Tron-style interactive 3D data world<br/>with AI guide AIDA</p>
-          <div id="start-features">
-            <span>⬡ 3D Tron City</span>
-            <span>◈ AI Guide AIDA</span>
-            <span>◉ Live News Feed</span>
-            <span>▲ Voice Narration</span>
-          </div>
-          <button id="start-btn">▶ ENTER DATA WORLD</button>
+      <div id="start-grid-bg"></div>
+      <div id="start-content">
+        <div id="start-bot">🤖</div>
+        <h1>UJAS.WORLD</h1>
+        <div id="start-sub">AWS DATA ENGINEER · TECHNICAL LEAD · 8.5+ YEARS</div>
+        <p>Step into a Tron-style interactive 3D data world<br/>guided by AIDA — your AI assistant</p>
+        <div id="start-tags">
+          <span>⬡ TRON CITY</span><span>◈ AI GUIDE</span>
+          <span>◉ LIVE NEWS</span><span>▲ LLM FEED</span>
+          <span>◆ VOICE SYNC</span><span>⬟ CLICK WORLD</span>
         </div>
+        <button id="start-btn">▶ ENTER DATA WORLD</button>
       </div>
     </div>
 
   </div><!-- /hud -->
 
-  <!-- Three.js from jsDelivr CDN — most reliable for GitHub Pages -->
-  <script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
-  <script src="assets/data.js"></script>
-  <script src="assets/world.js"></script>
+  <!-- ES Module entry point -->
+  <script type="module" src="assets/world.js"></script>
 
 </body>
 </html>

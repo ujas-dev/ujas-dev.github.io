@@ -1,213 +1,215 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Ujas Dubal | AWS Data Engineer & Technical Lead</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Portfolio of Ujas Dubal – AWS Data Engineer & Technical Lead with 8.5+ years in Redshift, Glue, PySpark, real-time analytics on AWS." />
-  <meta name="keywords" content="Ujas Dubal, Data Engineer, AWS, Redshift, Glue, PySpark, SQL, Ahmedabad, India, ETL, Technical Lead, Databricks, Airflow" />
-  <meta name="author" content="Ujas Jayeshkumar Dubal" />
-  <meta property="og:title" content="Ujas Dubal | AWS Data Engineer" />
-  <meta property="og:description" content="AWS Data Engineer & Technical Lead – Redshift, Glue, PySpark, real-time analytics." />
-  <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://ujas-dev.github.io/" />
-  <meta name="twitter:card" content="summary_large_image" />
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>" />
+  <meta charset="UTF-8"/>
+  <title>Ujas Dubal | AWS Data Engineer — Interactive 3D World</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="description" content="Ujas Dubal – AWS Data Engineer & Technical Lead. 8.5+ years, Redshift, Glue, PySpark. Interactive 3D portfolio."/>
+  <meta name="keywords" content="Ujas Dubal, Data Engineer, AWS, Redshift, Glue, PySpark, Ahmedabad, India"/>
+  <meta name="author" content="Ujas Jayeshkumar Dubal"/>
+  <meta property="og:title" content="Ujas Dubal | AWS Data Engineer"/>
+  <meta property="og:type" content="website"/>
+  <meta property="og:url" content="https://ujas-dev.github.io/"/>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>"/>
   <script type="application/ld+json">
-  {"@context":"https://schema.org","@type":"Person","name":"Ujas Jayeshkumar Dubal","jobTitle":"AWS Data Engineer & Technical Lead","url":"https://ujas-dev.github.io/","sameAs":["https://www.linkedin.com/in/ujasdubal"],"address":{"@type":"PostalAddress","addressLocality":"Ahmedabad","addressRegion":"Gujarat","addressCountry":"India"},"knowsAbout":["AWS Redshift","AWS Glue","PySpark","SQL","Data Engineering","ETL","Real-time Analytics","Databricks","Airflow"]}
+  {"@context":"https://schema.org","@type":"Person","name":"Ujas Jayeshkumar Dubal","jobTitle":"AWS Data Engineer & Technical Lead","url":"https://ujas-dev.github.io/","sameAs":["https://www.linkedin.com/in/ujasdubal"],"address":{"@type":"PostalAddress","addressLocality":"Ahmedabad","addressRegion":"Gujarat","addressCountry":"India"}}
   </script>
-  <link rel="stylesheet" href="assets/main.css" />
+  <link rel="stylesheet" href="assets/main.css"/>
 </head>
 <body>
 
-  <!-- Custom cursor -->
+  <!-- ══ LOADING SCREEN ════════════════════════════════════ -->
+  <div id="loader">
+    <div class="loader-inner">
+      <div class="loader-bot">🤖</div>
+      <div class="loader-txt">Initializing Ujas's World<span class="ldots"></span></div>
+      <div class="loader-bar-wrap"><div id="loader-bar"></div></div>
+    </div>
+  </div>
+
+  <!-- ══ AUDIO ENGINE ══════════════════════════════════════ -->
+  <!-- Tones generated via Web Audio API — no file needed -->
+
+  <!-- ══ MUSIC TOGGLE ══════════════════════════════════════ -->
+  <button id="music-btn" title="Toggle background music">🎵</button>
+
+  <!-- ══ CUSTOM CURSOR ═════════════════════════════════════ -->
   <div id="cdot"></div>
   <div id="cglow"></div>
 
-  <!-- WebGL particle background -->
-  <canvas id="bg"></canvas>
+  <!-- ══ ROBOT GUIDE ═══════════════════════════════════════ -->
+  <div id="bot-guide">
+    <div id="bot-avatar">🤖</div>
+    <div id="bot-bubble">
+      <span id="bot-text"></span>
+      <button id="bot-speak">🔊</button>
+    </div>
+    <button id="bot-dismiss">✕</button>
+  </div>
 
-  <!-- ── NAV ─────────────────────────────────────── -->
-  <header id="topnav">
-    <a href="#hero" class="logo-wrap">
+  <!-- ══ THREE.JS CANVAS ═══════════════════════════════════ -->
+  <canvas id="bg3d"></canvas>
+
+  <!-- ══ NAV ═══════════════════════════════════════════════ -->
+  <header id="nav">
+    <a href="#" class="logo-wrap" id="logo-link">
       <div id="ava-ring">
-        <img id="ava-img" src="assets/avatar.jpg" alt="Ujas Dubal" />
-        <svg class="ava-svg" viewBox="0 0 100 100">
+        <img id="ava" src="assets/avatar.jpg" alt="Ujas Dubal"/>
+        <svg viewBox="0 0 100 100" class="ava-svg">
           <defs>
-            <linearGradient id="rg" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="#38bdf8"/>
-              <stop offset="100%" stop-color="#e11d48"/>
-            </linearGradient>
+            <linearGradient id="rg"><stop offset="0%" stop-color="#38bdf8"/><stop offset="100%" stop-color="#e11d48"/></linearGradient>
           </defs>
-          <circle cx="50" cy="50" r="46" stroke="url(#rg)" stroke-width="2.5"
-                  fill="none" stroke-dasharray="289" stroke-linecap="round">
-            <animateTransform attributeName="transform" type="rotate"
-              from="0 50 50" to="360 50 50" dur="4s" repeatCount="indefinite"/>
+          <circle cx="50" cy="50" r="46" stroke="url(#rg)" stroke-width="3" fill="none" stroke-linecap="round">
+            <animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="3s" repeatCount="indefinite"/>
           </circle>
         </svg>
       </div>
-      <div class="logo-txt">
-        <span class="ln">Ujas Dubal</span>
-        <span class="lr">AWS Data Engineer</span>
-      </div>
+      <div class="logo-txt"><span class="ln">Ujas Dubal</span><span class="lr">AWS Data Engineer</span></div>
     </a>
     <nav id="mainnav">
-      <a class="nl" href="#about">About</a>
-      <a class="nl" href="#skills">Skills</a>
-      <a class="nl" href="#experience">Experience</a>
-      <a class="nl" href="#certifications">Certs</a>
-      <a class="nl" href="#projects">Projects</a>
-      <a class="nl" href="#contact">Contact</a>
+      <a class="nl" data-sec="hero">Home</a>
+      <a class="nl" data-sec="about">About</a>
+      <a class="nl" data-sec="skills">Skills</a>
+      <a class="nl" data-sec="experience">Experience</a>
+      <a class="nl" data-sec="certifications">Certs</a>
+      <a class="nl" data-sec="projects">Projects</a>
+      <a class="nl" data-sec="contact">Contact</a>
     </nav>
-    <span class="nk">↑↓ · 1–7 keys</span>
+    <span id="nav-keys">↑↓ · 1–7 keys</span>
   </header>
 
-  <main>
+  <!-- ══ WORLD CONTAINER ═══════════════════════════════════ -->
+  <div id="world">
 
-    <!-- ── HERO ──────────────────────────────────── -->
-    <section id="hero" class="sec" data-si="0">
+    <!-- ── SECTION 0: HERO / PORTAL ──────────────────────── -->
+    <section id="hero" class="wsec" data-si="0" data-bot="Welcome to Ujas's Data World! I'm AIDA, your AI Data guide. Use arrow keys or scroll to explore. Click anything to hear about it!">
       <div class="hero-grid">
-
         <div class="hero-l">
-          <!-- Terminal -->
-          <div class="term">
-            <div class="term-bar">
-              <span class="td r"></span><span class="td y"></span><span class="td g"></span>
-              <span class="tt">ujas@aws ~ bash</span>
-            </div>
-            <div class="term-body">
-              <span class="tp">$ </span><span id="ttext"></span><span class="tcur">▌</span>
-            </div>
+          <div class="term speak-target" data-speech="I am a data engineer who transforms billions of records into real time insights using AWS Redshift, Glue, and PySpark.">
+            <div class="term-bar"><span class="td r"></span><span class="td y"></span><span class="td g"></span><span class="tt">ujas@aws-data-engineer</span></div>
+            <div class="term-body"><span class="tp">$ </span><span id="ttext"></span><span class="tcur">▌</span></div>
           </div>
-
           <h1>
-            <span class="grad" id="hname">Ujas Dubal</span>
+            <span class="grad" id="hname"></span>
             <span class="hsub" id="htitle"></span>
           </h1>
           <p class="htag" id="htagline"></p>
-
           <div id="stats" class="stats-row"></div>
-
           <div class="hbtns">
-            <button class="btn bp" data-goto="projects">View Projects</button>
-            <button class="btn bg" data-goto="contact">Hire Me</button>
-            <a class="btn bg" href="https://www.linkedin.com/in/ujasdubal"
-               target="_blank" rel="noopener">LinkedIn ↗</a>
+            <button class="btn bp mag speak-target" data-goto="projects" data-speech="Let me show you my projects. I've built real time analytics platforms processing billions of records on AWS.">🚀 View Projects</button>
+            <button class="btn bg mag speak-target" data-goto="contact" data-speech="Want to work together? Let's connect! I'm open to Data Engineering and Technical Lead roles.">💼 Hire Me</button>
+            <a class="btn bg mag speak-target" href="https://www.linkedin.com/in/ujasdubal" target="_blank" rel="noopener" data-speech="Connect with me on LinkedIn to see my full professional profile and endorsements.">🔗 LinkedIn</a>
           </div>
         </div>
-
         <div class="hero-r">
-          <div id="t4d-wrap">
-            <canvas id="t4d"></canvas>
-            <p class="t4d-lbl">4D Tesseract · Drag &amp; scroll to control</p>
-          </div>
+          <!-- 4D Tesseract sits here via canvas -->
+          <canvas id="t4d"></canvas>
+          <p class="t4d-lbl">4D Tesseract · Drag · Scroll</p>
         </div>
       </div>
-
-      <div class="scrhint">
-        <div class="scrm"><div class="scrw"></div></div>
-        <span>Scroll or ↓</span>
-      </div>
+      <div class="scrhint"><div class="scrm"><div class="scrw"></div></div><span>Scroll or ↓</span></div>
     </section>
 
-    <!-- ── ABOUT ──────────────────────────────────── -->
-    <section id="about" class="sec" data-si="1">
+    <!-- ── SECTION 1: ABOUT ────────────────────────────── -->
+    <section id="about" class="wsec" data-si="1" data-bot="This is the About section. I'm Ujas Dubal, an AWS Data Engineer from Ahmedabad, India with 8.5 plus years of experience building scalable data platforms.">
       <div class="inner">
-        <h2 class="stitle">// About Me</h2>
-        <div class="grid3" id="about-grid">
-          <div class="hcard" data-holo>
-            <div class="glare"></div>
+        <h2 class="stitle"><span class="title-ico">👨‍💻</span> About Me</h2>
+        <div class="card-grid" id="about-grid">
+          <div class="wcard holo speak-target" data-speech="I am Ujas Dubal, AWS Data Engineer and Technical Lead from Ahmedabad, India. I design and build cloud native data platforms on AWS that handle billions of records.">
+            <div class="card-ico">🧠</div>
             <h3>Who I Am</h3>
-            <p>AWS Data Engineer & Technical Lead with 8.5+ years IT experience, 5+ years in data engineering, 1.5+ in leadership. Based in Ahmedabad, India.</p>
-            <p>I architect cloud-native data platforms that process billions of records reliably on AWS.</p>
+            <p>AWS Data Engineer & Technical Lead · 8.5+ years IT · 5+ years data engineering · 1.5+ years leadership</p>
+            <p>Designing cloud-native data platforms on AWS, processing billions of records reliably and in real-time.</p>
           </div>
-          <div class="hcard" data-holo>
-            <div class="glare"></div>
+          <div class="wcard holo speak-target" data-speech="My impact includes cutting ETL manual workload by 30%, reducing latency by 20%, improving real time decision making by 30%, and boosting deployment efficiency by 34%.">
+            <div class="card-ico">📊</div>
             <h3>Impact Delivered</h3>
-            <ul class="dl">
-              <li>ETL automation → manual workload ↓30%</li>
-              <li>PySpark tuning → latency ↓20%</li>
-              <li>Real-time platform → decisions ↑30%</li>
-              <li>CI/CD pipelines → deploy speed ↑34%</li>
-              <li>Data quality → report accuracy ↑35%</li>
-            </ul>
+            <ul class="dl"><li>ETL automation → manual workload ↓30%</li><li>PySpark tuning → latency ↓20%</li><li>Real-time platform → decisions ↑30%</li><li>CI/CD → deploy speed ↑34%</li><li>Data quality → accuracy ↑35%</li></ul>
           </div>
-          <div class="hcard" data-holo>
-            <div class="glare"></div>
-            <h3>Education</h3>
+          <div class="wcard holo speak-target" data-speech="I hold a Masters in IT from GLS University and a Bachelors in Electronics from Gujarat Technology University. I've won TCS awards in 2023 and 2024.">
+            <div class="card-ico">🎓</div>
+            <h3>Education & Awards</h3>
             <p><strong>M.Sc. IT</strong> – GLS University (2019)</p>
             <p><strong>B.E. Electronics</strong> – GTU (2015)</p>
-            <p>Awards: TCS On-the-Spot Solution (2023), Certificate of Achievement (2024)</p>
+            <p>🏆 TCS On-the-Spot Award (2023) · Certificate of Achievement (2024)</p>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- ── SKILLS ─────────────────────────────────── -->
-    <section id="skills" class="sec" data-si="2">
+    <!-- ── SECTION 2: SKILLS ───────────────────────────── -->
+    <section id="skills" class="wsec" data-si="2" data-bot="Welcome to the Skills arena! I'm proficient in Python, PySpark, AWS Redshift, Glue, Lambda, Databricks, Airflow, and more. Click any skill to hear about it.">
       <div class="inner">
-        <h2 class="stitle">// Skills & Stack</h2>
-        <div id="orbs-wrap" class="orbs-wrap"></div>
-        <div id="bars-wrap" class="bars-wrap"></div>
+        <h2 class="stitle"><span class="title-ico">⚡</span> Skills & Stack</h2>
+        <div id="orbs" class="orbs-wrap"></div>
+        <div id="bars" class="bars-wrap"></div>
       </div>
     </section>
 
-    <!-- ── EXPERIENCE ─────────────────────────────── -->
-    <section id="experience" class="sec" data-si="3">
+    <!-- ── SECTION 3: EXPERIENCE ──────────────────────── -->
+    <section id="experience" class="wsec" data-si="3" data-bot="This is my professional journey! From junior software engineer to AWS Data Engineer and Technical Lead at TCS. 8.5 years of building amazing data systems.">
       <div class="inner">
-        <h2 class="stitle">// Experience</h2>
+        <h2 class="stitle"><span class="title-ico">🚀</span> Experience</h2>
         <div id="exp-tl" class="exp-tl"></div>
       </div>
     </section>
 
-    <!-- ── CERTIFICATIONS ─────────────────────────── -->
-    <section id="certifications" class="sec" data-si="4">
+    <!-- ── SECTION 4: CERTIFICATIONS ─────────────────── -->
+    <section id="certifications" class="wsec" data-si="4" data-bot="These are my certifications! I'm AWS Certified Developer Associate, plus multiple Python certifications from University of Michigan on Coursera. Hover to flip each badge!">
       <div class="inner">
-        <h2 class="stitle">// Certifications</h2>
-        <p class="ssub">Hover each badge to flip · Click to verify</p>
+        <h2 class="stitle"><span class="title-ico">🏅</span> Certifications</h2>
+        <p class="ssub">Hover to flip · Click to verify</p>
         <div id="cert-grid" class="cert-grid"></div>
       </div>
     </section>
 
-    <!-- ── PROJECTS ───────────────────────────────── -->
-    <section id="projects" class="sec" data-si="5">
+    <!-- ── SECTION 5: PROJECTS ────────────────────────── -->
+    <section id="projects" class="wsec" data-si="5" data-bot="Here are my key projects! Real time analytics, Salesforce Redshift integration, and secure payment APIs. Click each card to hear more.">
       <div class="inner">
-        <h2 class="stitle">// Projects</h2>
+        <h2 class="stitle"><span class="title-ico">🛠️</span> Projects</h2>
         <div id="proj-grid" class="proj-grid"></div>
       </div>
     </section>
 
-    <!-- ── CONTACT ────────────────────────────────── -->
-    <section id="contact" class="sec" data-si="6">
+    <!-- ── SECTION 6: CONTACT ─────────────────────────── -->
+    <section id="contact" class="wsec" data-si="6" data-bot="You've reached the Contact zone! Fill in your name, email, and message. The form goes directly to Ujas's email via Google Forms. Let's build something amazing together!">
       <div class="inner">
-        <h2 class="stitle">// Let's Build Together</h2>
+        <h2 class="stitle"><span class="title-ico">📬</span> Let's Build Together</h2>
         <div class="contact-wrap">
-          <div class="hcard" data-holo>
-            <div class="glare"></div>
+          <div class="wcard holo speak-target" data-speech="I am open to Data Engineering and Technical Lead roles. Remote friendly. Reach me at ujasdubal at gmail dot com or on LinkedIn.">
+            <div class="card-ico">🤝</div>
             <h3>Ujas Jayeshkumar Dubal</h3>
-            <p>Open to Data Engineering & Technical Lead roles. Remote-friendly.</p>
+            <p>Open to DE & Technical Lead roles. Remote-friendly.</p>
             <div id="clinks"></div>
           </div>
-          <form class="hcard cform" data-holo
-                action="https://formspree.io/f/YOUR_FORM_ID" method="POST">
-            <div class="glare"></div>
+          <!-- Google Form POST — replace action URL and entry IDs -->
+          <form id="gform" class="wcard cform holo"
+                action="https://docs.google.com/forms/d/e/YOUR_FORM_ID/formResponse"
+                method="POST"
+                target="hidden_iframe"
+                onsubmit="formSent()">
+            <div class="card-ico">✉️</div>
             <h3>Quick Message</h3>
-            <div class="field"><label>Name</label><input type="text" name="name" required /></div>
-            <div class="field"><label>Email</label><input type="email" name="_replyto" required /></div>
-            <div class="field"><label>Message</label><textarea name="message" rows="4" required></textarea></div>
-            <button type="submit" class="btn bp mag">Send Message</button>
+            <p class="form-note">Submits directly to Ujas's email via Google Forms</p>
+            <div class="field"><label>Name</label><input type="text" name="entry.NAME_ENTRY_ID" required placeholder="Your name"/></div>
+            <div class="field"><label>Email</label><input type="email" name="entry.EMAIL_ENTRY_ID" required placeholder="your@email.com"/></div>
+            <div class="field"><label>Message</label><textarea name="entry.MSG_ENTRY_ID" rows="4" required placeholder="Let's talk data engineering..."></textarea></div>
+            <button type="submit" class="btn bp mag">🚀 Send Message</button>
+            <div id="form-success" style="display:none">✅ Sent! Ujas will reply shortly.</div>
           </form>
+          <iframe name="hidden_iframe" id="hidden_iframe" style="display:none"></iframe>
         </div>
       </div>
     </section>
 
-  </main>
+  </div><!-- /world -->
 
-  <footer>
+  <footer id="foot">
     <span>© <span id="yr"></span> Ujas Dubal · AWS Data Engineer · Ahmedabad, India</span>
+    <span>Built with Three.js · Web Speech API · Google Forms</span>
   </footer>
 
-  <!-- NO ScrollTrigger — intentionally removed to fix the scrollTo conflict -->
+  <!-- Three.js CDN -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r152/three.min.js"></script>
   <script src="assets/config.js"></script>
   <script src="assets/main.js"></script>

@@ -1,510 +1,629 @@
-// ================================================================
-// UJAS DUBAL PORTFOLIO — main.js
-// WebGL particles, 4D Tesseract, holographic cards, cursor, keyboard
-// ================================================================
+/* ================================================================
+   UJAS DUBAL PORTFOLIO — main.js  v3 (FULLY FIXED + TRUE 3D/4D)
+   ================================================================ */
 
-const C = window.PORTFOLIO_CONFIG;
+'use strict';
 
-// ─── SAFE SCROLL (renamed to navTo, never touches window.scrollTo) ───
-function navTo(hash) {
-  const el = document.querySelector(hash);
-  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+// ── 0. CONFIG ────────────────────────────────────────────────────
+const CFG = window.PORTFOLIO_CONFIG;
+
+// ── 1. BOOT: populate DOM from config ───────────────────────────
+(function boot() {
+  document.getElementById('year').textContent = new Date().getFullYear();
+
+  const avatarImg = document.getElementById('avatar-img');
+  if (avatarImg) avatarImg.src = CFG.avatarUrl;
+
+  const heroName = document.getElementById('hero-name');
+  if (heroName) heroName.textContent = CFG.name;
+
+  const heroTitle = document.getElementById('hero-title');
+  if (heroTitle) heroTitle.textContent = CFG.title;
+
+  const heroTagline = document.getElementById('hero-tagline');
+  if (heroTagline) heroTagline.textContent = CFG.tagline;
+
+  // ── Stats counters
+  const statsRow = document.getElementById('stats-row');
+  if (statsRow) {
+    CFG.stats.forEach(s => {
+      const el = document.createElement('div');
+      el.className = 'stat-item';
+      el.innerHTML = `<span class="stat-val" data-target="${s.value}" data-suffix="${s.suffix}">0${s.suffix}</span>
+                      <span class="stat-label">${s.label}</span>`;
+      statsRow.appendChild(el);
+    });
+    setTimeout(animateCounters, 900);
+  }
+
+  // ── Skills orbs + bars
+  const orbsWrap = document.getElementById('skills-orbs-wrap');
+  const barsWrap = document.getElementById('skills-bars-wrap');
+  if (orbsWrap && barsWrap) {
+    CFG.skills.forEach(s => {
+      const orb = document.createElement('div');
+      orb.className = 'skill-orb';
+      orb.textContent = s.name;
+      orb.style.setProperty('--orb-color', s.color + '33');
+      orb.style.borderColor = s.color + '66';
+      orbsWrap.appendChild(orb);
+
+      const row = document.createElement('div');
+      row.className = 'skill-bar-row';
+      row.innerHTML = `
+        <div class="skill-bar-name">${s.name}</div>
+        <div class="skill-bar-track">
+          <div class="skill-bar-fill"
+               style="background:linear-gradient(to right,${s.color},${s.color}88)"
+               data-width="${s.level}"></div>
+        </div>
+        <div class="skill-bar-pct">${s.level}%</div>`;
+      barsWrap.appendChild(row);
+    });
+  }
+
+  // ── Experience timeline
+  const expEl = document.getElementById('exp-timeline');
+  if (expEl) {
+    CFG.experience.forEach(e => {
+      const el = document.createElement('div');
+      el.className = 'exp-item';
+      el.innerHTML = `
+        <div class="exp-meta">
+          <div class="exp-company">${e.company}</div>
+          <div class="exp-period">${e.period}</div>
+          <div class="exp-location">${e.location}</div>
+        </div>
+        <div class="exp-body">
+          <div class="exp-role">${e.role}</div>
+          <ul class="exp-highlights">
+            ${e.highlights.map(h => `<li>${h}</li>`).join('')}
+          </ul>
+        </div>`;
+      expEl.appendChild(el);
+    });
+  }
+
+  // ── Certifications (3D flip cards)
+  const certGrid = document.getElementById('cert-grid');
+  if (certGrid) {
+    CFG.certifications.forEach(cert => {
+      const el = document.createElement('div');
+      el.className = 'cert-flip';
+      el.innerHTML = `
+        <div class="cert-flipper">
+          <div class="cert-front">
+            <div class="cert-badge-glow" style="--cert-color:${cert.color}"></div>
+            <img src="${cert.badgeUrl}" alt="${cert.title}"
+                 onerror="this.src='https://placehold.co/80x80/0f172a/38bdf8?text=CERT'" />
+            <div class="cert-title">${cert.title}</div>
+            <div class="cert-issuer">${cert.issuer}</div>
+            <div class="cert-year">${cert.year}</div>
+          </div>
+          <div class="cert-back" style="border-color:${cert.color}44">
+            <div class="cert-badge-glow" style="--cert-color:${cert.color}"></div>
+            <h4>${cert.title}</h4>
+            <p>${cert.issuer} · ${cert.year}</p>
+            <a href="${cert.credlyUrl}" target="_blank" rel="noopener">Verify Certificate ↗</a>
+          </div>
+        </div>`;
+      certGrid.appendChild(el);
+    });
+  }
+
+  // ── Projects
+  const projGrid = document.getElementById('projects-grid');
+  if (projGrid) {
+    CFG.projects.forEach(p => {
+      const el = document.createElement('article');
+      el.className = 'proj-card';
+      el.style.setProperty('--proj-color', p.color);
+      el.innerHTML = `
+        <div class="proj-title">${p.title}</div>
+        <div class="proj-client">${p.client}</div>
+        <div class="proj-desc">${p.desc}</div>
+        <div class="proj-tags">
+          ${p.tags.map(t => `<span class="proj-tag">${t}</span>`).join('')}
+        </div>`;
+      projGrid.appendChild(el);
+    });
+  }
+
+  // ── Contact links
+  const clEl = document.getElementById('contact-links');
+  if (clEl) {
+    clEl.innerHTML = `
+      <a href="mailto:${CFG.email}" class="contact-link">✉ ${CFG.email}</a>
+      <a href="${CFG.linkedin}" target="_blank" rel="noopener" class="contact-link">🔗 LinkedIn: ujasdubal</a>
+      <a href="${CFG.github}" target="_blank" rel="noopener" class="contact-link">⬡ GitHub: ujas-dev</a>
+      <span class="contact-link">📍 ${CFG.location}</span>`;
+  }
+})();
+
+// ── 2. SAFE NAVIGATION (never named scrollTo) ───────────────────
+// CRITICAL: Do NOT name any function scrollTo.
+// GSAP ScrollTrigger calls window.scrollTo(0, y) internally.
+// Naming your own function scrollTo will override window.scrollTo and crash GSAP.
+
+function jumpToSection(hash) {
+  if (!hash || typeof hash !== 'string') return;
+  try {
+    const target = document.querySelector(hash);
+    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } catch (e) {
+    // silently ignore invalid selectors
+  }
 }
 
-// ─── Wire hero buttons (don't use inline onclick) ─────────────
-// Remove onclick="scrollTo(...)" from your HTML and use this instead:
-document.addEventListener('DOMContentLoaded', () => {
-  document.querySelectorAll('[data-nav]').forEach(btn => {
-    btn.addEventListener('click', () => navTo(btn.dataset.nav));
+// Wire data-nav buttons (no inline onclick needed)
+document.addEventListener('DOMContentLoaded', function () {
+  document.querySelectorAll('[data-nav]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      jumpToSection(btn.dataset.nav);
+    });
   });
 });
 
-// ─── Populate from config ──────────────────────────────────────
-document.getElementById('year').textContent = new Date().getFullYear();
-document.getElementById('avatar-img').src = C.avatarUrl;
-document.getElementById('hero-name').textContent = C.name;
-document.getElementById('hero-title').textContent = C.title;
-document.getElementById('hero-tagline').textContent = C.tagline;
-
-// Stats counters
-const statsRow = document.getElementById('stats-row');
-C.stats.forEach(s => {
-  const el = document.createElement('div');
-  el.className = 'stat-item';
-  el.innerHTML = `<span class="stat-val" data-target="${s.value}" data-suffix="${s.suffix}">0${s.suffix}</span><span class="stat-label">${s.label}</span>`;
-  statsRow.appendChild(el);
-});
-
+// ── 3. COUNTER ANIMATION ────────────────────────────────────────
 function animateCounters() {
-  document.querySelectorAll('.stat-val').forEach(el => {
-    const target = parseFloat(el.dataset.target);
-    const suffix = el.dataset.suffix;
-    let start = 0;
-    const step = () => {
-      start += target / 60;
-      if (start >= target) { el.textContent = target + suffix; return; }
-      el.textContent = (target % 1 !== 0 ? start.toFixed(1) : Math.floor(start)) + suffix;
+  document.querySelectorAll('.stat-val').forEach(function (el) {
+    var target = parseFloat(el.dataset.target);
+    var suffix = el.dataset.suffix || '';
+    var current = 0;
+    var isDecimal = target % 1 !== 0;
+    var increment = target / 60;
+    function step() {
+      current += increment;
+      if (current >= target) {
+        el.textContent = (isDecimal ? target.toFixed(1) : target) + suffix;
+        return;
+      }
+      el.textContent = (isDecimal ? current.toFixed(1) : Math.floor(current)) + suffix;
       requestAnimationFrame(step);
-    };
+    }
     step();
   });
 }
-setTimeout(animateCounters, 800);
 
-// Skills
-const orbsWrap = document.getElementById('skills-orbs-wrap');
-const barsWrap = document.getElementById('skills-bars-wrap');
-C.skills.forEach(s => {
-  const orb = document.createElement('div');
-  orb.className = 'skill-orb';
-  orb.textContent = s.name;
-  orb.style.setProperty('--orb-color', s.color + '33');
-  orb.style.borderColor = s.color + '55';
-  orbsWrap.appendChild(orb);
+// ── 4. CUSTOM CURSOR ────────────────────────────────────────────
+(function initCursor() {
+  var dot   = document.getElementById('cursor-dot');
+  var glow  = document.getElementById('cursor-glow');
+  if (!dot || !glow) return;
 
-  const row = document.createElement('div');
-  row.className = 'skill-bar-row';
-  row.innerHTML = `
-    <div class="skill-bar-name">${s.name}</div>
-    <div class="skill-bar-track"><div class="skill-bar-fill" style="background:linear-gradient(to right,${s.color},${s.color}88)" data-width="${s.level}"></div></div>
-    <div class="skill-bar-pct">${s.level}%</div>`;
-  barsWrap.appendChild(row);
-});
+  var mx = -300, my = -300;
+  var glx = -300, gly = -300;
 
-// Experience timeline
-const expEl = document.getElementById('exp-timeline');
-C.experience.forEach(e => {
-  const el = document.createElement('div');
-  el.className = 'exp-item';
-  el.innerHTML = `
-    <div class="exp-meta">
-      <div class="exp-company">${e.company}</div>
-      <div class="exp-period">${e.period}</div>
-      <div class="exp-location">${e.location}</div>
-    </div>
-    <div class="exp-body">
-      <div class="exp-role">${e.role}</div>
-      <ul class="exp-highlights">${e.highlights.map(h=>`<li>${h}</li>`).join('')}</ul>
-    </div>`;
-  expEl.appendChild(el);
-});
+  document.addEventListener('pointermove', function (e) {
+    mx = e.clientX;
+    my = e.clientY;
+    dot.style.left = mx + 'px';
+    dot.style.top  = my + 'px';
+  });
 
-// Certifications
-const certGrid = document.getElementById('cert-grid');
-C.certifications.forEach(cert => {
-  const el = document.createElement('div');
-  el.className = 'cert-flip';
-  el.innerHTML = `
-    <div class="cert-flipper">
-      <div class="cert-front">
-        <div class="cert-badge-glow" style="--cert-color:${cert.color}"></div>
-        <img src="${cert.badgeUrl}" alt="${cert.title}" onerror="this.src='https://placehold.co/80x80/0f172a/38bdf8?text=CERT'" />
-        <div class="cert-title">${cert.title}</div>
-        <div class="cert-issuer">${cert.issuer}</div>
-        <div class="cert-year">${cert.year}</div>
-      </div>
-      <div class="cert-back" style="border-color:${cert.color}44">
-        <div class="cert-badge-glow" style="--cert-color:${cert.color}"></div>
-        <h4>${cert.title}</h4>
-        <p>${cert.issuer} · ${cert.year}</p>
-        <a href="${cert.credlyUrl}" target="_blank" rel="noopener">Verify Certificate ↗</a>
-      </div>
-    </div>`;
-  certGrid.appendChild(el);
-});
+  (function glowLoop() {
+    glx += (mx - glx) * 0.13;
+    gly += (my - gly) * 0.13;
+    glow.style.left = glx + 'px';
+    glow.style.top  = gly + 'px';
+    requestAnimationFrame(glowLoop);
+  })();
 
-// Projects
-const projGrid = document.getElementById('projects-grid');
-C.projects.forEach(p => {
-  const el = document.createElement('article');
-  el.className = 'proj-card';
-  el.style.setProperty('--proj-color', p.color);
-  el.innerHTML = `
-    <div class="proj-title">${p.title}</div>
-    <div class="proj-client">${p.client}</div>
-    <div class="proj-desc">${p.desc}</div>
-    <div class="proj-tags">${p.tags.map(t=>`<span class="proj-tag">${t}</span>`).join('')}</div>`;
-  projGrid.appendChild(el);
-});
-
-// Contact links
-const clEl = document.getElementById('contact-links');
-clEl.innerHTML = `
-  <a href="mailto:${C.email}" class="contact-link">✉ ${C.email}</a>
-  <a href="${C.linkedin}" target="_blank" rel="noopener" class="contact-link">🔗 LinkedIn: ujasdubal</a>
-  <a href="${C.github}" target="_blank" rel="noopener" class="contact-link">⬡ GitHub: ujas-dev</a>
-  <span class="contact-link">📍 ${C.location}</span>`;
-
-// ─── Utility ──────────────────────────────────────────────────
-function scrollTo(hash) {
-  const el = document.querySelector(hash);
-  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
-window.scrollTo = scrollTo;
-
-// ─── Custom Cursor ────────────────────────────────────────────
-const dot = document.getElementById('cursor-dot');
-const glow = document.getElementById('cursor-glow');
-let mx = -200, my = -200, glx = -200, gly = -200;
-
-document.addEventListener('pointermove', e => { mx = e.clientX; my = e.clientY; });
-document.addEventListener('pointerleave', () => { mx = -200; my = -200; });
-
-;(function cursorLoop() {
-  glx += (mx - glx) * 0.14;
-  gly += (my - gly) * 0.14;
-  dot.style.left = mx + 'px';
-  dot.style.top = my + 'px';
-  glow.style.left = glx + 'px';
-  glow.style.top = gly + 'px';
-  requestAnimationFrame(cursorLoop);
+  var hoverTargets = document.querySelectorAll(
+    'a, button, .holo-card, .cert-flip, .proj-card, .skill-orb, .mag-btn, .nav-link'
+  );
+  hoverTargets.forEach(function (el) {
+    el.addEventListener('pointerenter', function () { document.body.classList.add('hovering'); });
+    el.addEventListener('pointerleave', function () { document.body.classList.remove('hovering'); });
+  });
 })();
 
-document.querySelectorAll('a,button,.holo-card,.cert-flip,.proj-card,.skill-orb,.mag-btn').forEach(el => {
-  el.addEventListener('pointerenter', () => document.body.classList.add('hovering'));
-  el.addEventListener('pointerleave', () => document.body.classList.remove('hovering'));
-});
-
-// ─── Magnetic Buttons ─────────────────────────────────────────
-document.querySelectorAll('.mag-btn').forEach(btn => {
-  btn.addEventListener('pointermove', e => {
-    const r = btn.getBoundingClientRect();
-    const x = (e.clientX - r.left - r.width / 2) / 4;
-    const y = (e.clientY - r.top - r.height / 2) / 4;
-    btn.style.transform = `translate(${x}px, ${y}px) translateY(-2px)`;
+// ── 5. MAGNETIC BUTTONS ─────────────────────────────────────────
+(function initMagnet() {
+  document.querySelectorAll('.mag-btn').forEach(function (btn) {
+    btn.addEventListener('pointermove', function (e) {
+      var r = btn.getBoundingClientRect();
+      var x = (e.clientX - r.left - r.width  / 2) / 5;
+      var y = (e.clientY - r.top  - r.height / 2) / 5;
+      btn.style.transform = 'translate(' + x + 'px, ' + y + 'px) translateY(-2px)';
+    });
+    btn.addEventListener('pointerleave', function () {
+      btn.style.transform = '';
+    });
   });
-  btn.addEventListener('pointerleave', () => { btn.style.transform = ''; });
-});
+})();
 
-// ─── Holographic 3D Tilt Cards ────────────────────────────────
-document.querySelectorAll('[data-holo]').forEach(card => {
-  card.addEventListener('pointermove', e => {
-    const r = card.getBoundingClientRect();
-    const x = (e.clientX - r.left) / r.width;
-    const y = (e.clientY - r.top) / r.height;
-    const rotX = (y - 0.5) * -20;
-    const rotY = (x - 0.5) * 20;
-    card.style.transform = `perspective(600px) rotateX(${rotX}deg) rotateY(${rotY}deg) scale3d(1.03,1.03,1.03)`;
-    card.style.boxShadow = `${(x - 0.5) * -20}px ${(y - 0.5) * -20}px 40px rgba(0,0,0,0.5), var(--glow-cyan)`;
-    const glare = card.querySelector('.holo-glare');
-    if (glare) {
-      glare.style.background = `radial-gradient(circle at ${x*100}% ${y*100}%, rgba(255,255,255,0.1) 0%, transparent 55%)`;
-    }
+// ── 6. HOLOGRAPHIC 3D TILT CARDS ────────────────────────────────
+(function initHoloCards() {
+  document.querySelectorAll('[data-holo]').forEach(function (card) {
+    card.addEventListener('pointermove', function (e) {
+      var r    = card.getBoundingClientRect();
+      var xPct = (e.clientX - r.left)  / r.width;
+      var yPct = (e.clientY - r.top)   / r.height;
+      var rotX = (yPct - 0.5) * -22;
+      var rotY = (xPct - 0.5) *  22;
+      card.style.transform =
+        'perspective(650px) rotateX(' + rotX + 'deg) rotateY(' + rotY + 'deg) scale3d(1.04,1.04,1.04)';
+      var glare = card.querySelector('.holo-glare');
+      if (glare) {
+        glare.style.background =
+          'radial-gradient(circle at ' + (xPct * 100) + '% ' + (yPct * 100) + '%, ' +
+          'rgba(255,255,255,0.12) 0%, transparent 55%)';
+      }
+    });
+    card.addEventListener('pointerleave', function () {
+      card.style.transform = '';
+      var glare = card.querySelector('.holo-glare');
+      if (glare) glare.style.background = '';
+    });
   });
-  card.addEventListener('pointerleave', () => {
-    card.style.transform = '';
-    card.style.boxShadow = '';
-    const glare = card.querySelector('.holo-glare');
-    if (glare) glare.style.background = '';
+})();
+
+// ── 7. KEYBOARD NAVIGATION ──────────────────────────────────────
+(function initKeyboard() {
+  var SECTIONS = [
+    '#hero', '#about', '#skills', '#experience',
+    '#certifications', '#projects', '#contact'
+  ];
+  var currentIdx = 0;
+
+  function gotoIdx(i) {
+    var clamped = Math.max(0, Math.min(SECTIONS.length - 1, i));
+    currentIdx = clamped;
+    jumpToSection(SECTIONS[clamped]);
+  }
+
+  window.addEventListener('keydown', function (e) {
+    var k = e.key;
+    if (k === 'ArrowDown' || k === 's') { e.preventDefault(); gotoIdx(currentIdx + 1); }
+    else if (k === 'ArrowUp' || k === 'w') { e.preventDefault(); gotoIdx(currentIdx - 1); }
+    else if (k >= '1' && k <= '7') { gotoIdx(parseInt(k, 10) - 1); }
+    else if (k === 'Escape') { gotoIdx(0); }
   });
-});
 
-// ─── Keyboard Navigation ──────────────────────────────────────
-const SECTIONS = ['#hero','#about','#skills','#experience','#certifications','#projects','#contact'];
-let secIdx = 0;
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (entry) {
+      if (entry.isIntersecting) {
+        var idx = entry.target.dataset.sec;
+        if (idx !== undefined) currentIdx = parseInt(idx, 10);
+      }
+    });
+  }, { threshold: 0.45 });
 
-function jumpSec(i) {
-  const c = Math.max(0, Math.min(SECTIONS.length - 1, i));
-  secIdx = c;
-  navTo(SECTIONS[c]);   // ← was scrollTo(), now navTo()
-}
+  document.querySelectorAll('.section[data-sec]').forEach(function (s) { io.observe(s); });
+})();
 
-window.addEventListener('keydown', e => {
-  const k = e.key;
-  if (k === 'ArrowDown' || k === 's') { e.preventDefault(); jumpSec(secIdx + 1); }
-  else if (k === 'ArrowUp'   || k === 'w') { e.preventDefault(); jumpSec(secIdx - 1); }
-  else if (k >= '1' && k <= '7') jumpSec(parseInt(k) - 1);
-  else if (k === 'Escape') jumpSec(0);
-});
+// ── 8. GSAP SCROLL REVEALS ───────────────────────────────────────
+// IMPORTANT: Do NOT pass 'scrollTo' plugin. Only use ScrollTrigger.
+(function initGSAP() {
+  if (!window.gsap || !window.ScrollTrigger) return;
 
-const secObserver = new IntersectionObserver(entries => {
-  entries.forEach(e => {
-    if (e.isIntersecting) secIdx = parseInt(e.target.dataset.sec || 0);
-  });
-}, { threshold: 0.4 });
-
-document.querySelectorAll('.section[data-sec]').forEach(s => secObserver.observe(s));
-
-// ─── GSAP ScrollTrigger Reveals ──────────────────────────────
-if (window.gsap && window.ScrollTrigger) {
   gsap.registerPlugin(ScrollTrigger);
-  gsap.utils.toArray('.holo-card,.exp-item,.cert-flip,.proj-card').forEach((el, i) => {
+
+  // Reveal cards / timeline items
+  gsap.utils.toArray(
+    '.holo-card, .exp-item, .cert-flip, .proj-card'
+  ).forEach(function (el, i) {
     gsap.from(el, {
-      opacity: 0, y: 30, rotateX: -8, duration: 0.7,
-      delay: (i % 4) * 0.07, ease: 'power3.out',
-      scrollTrigger: { trigger: el, start: 'top 88%', toggleActions: 'play none none reverse' }
+      opacity:  0,
+      y:        35,
+      rotateX: -10,
+      duration: 0.75,
+      delay:    (i % 5) * 0.06,
+      ease:     'power3.out',
+      scrollTrigger: {
+        trigger:      el,
+        start:        'top 88%',
+        toggleActions: 'play none none reverse'
+      }
     });
   });
 
-  // Skill bar animation
+  // Skill bars fill on scroll-enter
   ScrollTrigger.create({
-    trigger: '#skills',
-    start: 'top 70%',
-    onEnter: () => {
-      document.querySelectorAll('.skill-bar-fill').forEach(b => {
+    trigger:  '#skills',
+    start:    'top 72%',
+    once:     true,
+    onEnter: function () {
+      document.querySelectorAll('.skill-bar-fill').forEach(function (b) {
         b.style.width = b.dataset.width + '%';
       });
     }
   });
-}
+})();
 
-// ─── Terminal Typing Effect ───────────────────────────────────
-const lines = [
-  `whoami`,
-  `echo "${C.name} | ${C.title}"`,
-  `aws s3 ls s3://ujas-data-pipelines/ | wc -l`,
-  `spark-submit --master yarn pipeline.py --env prod`,
-];
-let lineIdx = 0, charIdx = 0, typing = true;
-const tText = document.getElementById('t-text');
+// ── 9. TERMINAL TYPING EFFECT ────────────────────────────────────
+(function initTerminal() {
+  var tText = document.getElementById('t-text');
+  if (!tText) return;
 
-function typeNext() {
-  if (lineIdx >= lines.length) { lineIdx = 0; }
-  const line = lines[lineIdx];
-  if (typing) {
-    if (charIdx < line.length) {
-      tText.textContent += line[charIdx++];
-      setTimeout(typeNext, 55 + Math.random() * 30);
+  var lines = [
+    'whoami',
+    'echo "' + CFG.name + ' | Data Engineer"',
+    'aws s3 ls s3://ujas-data-pipelines/',
+    'spark-submit pipeline.py --master yarn --env prod',
+    'SELECT COUNT(*) FROM redshift.analytics.fact_sales;',
+    'git push origin feature/etl-optimization'
+  ];
+
+  var lineIdx = 0, charIdx = 0, typing = true;
+
+  function tick() {
+    if (lineIdx >= lines.length) lineIdx = 0;
+    var line = lines[lineIdx];
+    if (typing) {
+      if (charIdx < line.length) {
+        tText.textContent += line[charIdx++];
+        setTimeout(tick, 48 + Math.random() * 28);
+      } else {
+        typing = false;
+        setTimeout(tick, 1600);
+      }
     } else {
-      typing = false;
-      setTimeout(typeNext, 1400);
-    }
-  } else {
-    if (charIdx > 0) {
-      tText.textContent = line.slice(0, --charIdx);
-      setTimeout(typeNext, 18);
-    } else {
-      typing = true;
-      lineIdx++;
-      setTimeout(typeNext, 300);
+      if (charIdx > 0) {
+        tText.textContent = line.slice(0, --charIdx);
+        setTimeout(tick, 16);
+      } else {
+        typing = true;
+        lineIdx++;
+        setTimeout(tick, 350);
+      }
     }
   }
-}
-setTimeout(typeNext, 600);
+  setTimeout(tick, 700);
+})();
 
-// ─── THREE.JS GPU PARTICLE FIELD (50k particles) ─────────────
-(function initParticleField() {
-  if (!window.THREE) return;
-  const canvas = document.getElementById('bg');
-  const w = window.innerWidth, h = window.innerHeight;
-  const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: false });
+// ── 10. THREE.JS PARTICLE FIELD (50k GPU particles) ─────────────
+(function initParticles() {
+  if (!window.THREE) { console.warn('Three.js not loaded'); return; }
+
+  var canvas   = document.getElementById('bg');
+  if (!canvas) return;
+
+  var W = window.innerWidth, H = window.innerHeight;
+  var renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: false });
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-  renderer.setSize(w, h);
+  renderer.setSize(W, H);
 
-  const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(60, w / h, 0.1, 150);
+  var scene  = new THREE.Scene();
+  var camera = new THREE.PerspectiveCamera(60, W / H, 0.1, 150);
   camera.position.z = 30;
 
-  const COUNT = 50000;
-  const positions = new Float32Array(COUNT * 3);
-  const velocities = new Float32Array(COUNT * 3);
-  const colors = new Float32Array(COUNT * 3);
+  var COUNT     = 50000;
+  var positions = new Float32Array(COUNT * 3);
+  var velocities= new Float32Array(COUNT * 3);
+  var colors    = new Float32Array(COUNT * 3);
 
-  for (let i = 0; i < COUNT; i++) {
+  for (var i = 0; i < COUNT; i++) {
     positions[i*3]   = (Math.random() - 0.5) * 80;
     positions[i*3+1] = (Math.random() - 0.5) * 80;
     positions[i*3+2] = (Math.random() - 0.5) * 60;
     velocities[i*3]   = (Math.random() - 0.5) * 0.01;
     velocities[i*3+1] = (Math.random() - 0.5) * 0.01;
     velocities[i*3+2] = (Math.random() - 0.5) * 0.008;
-    const mix = Math.random();
-    colors[i*3]   = mix > 0.6 ? 0.22 : (mix > 0.3 ? 0.65 : 0.88);
-    colors[i*3+1] = mix > 0.6 ? 0.74 : (mix > 0.3 ? 0.47 : 0.11);
-    colors[i*3+2] = mix > 0.6 ? 0.98 : (mix > 0.3 ? 0.98 : 0.27);
+    var mix = Math.random();
+    if (mix > 0.66) {
+      colors[i*3] = 0.22; colors[i*3+1] = 0.74; colors[i*3+2] = 0.98; // cyan
+    } else if (mix > 0.33) {
+      colors[i*3] = 0.65; colors[i*3+1] = 0.47; colors[i*3+2] = 0.98; // purple
+    } else {
+      colors[i*3] = 0.88; colors[i*3+1] = 0.11; colors[i*3+2] = 0.28; // pink
+    }
   }
 
-  const geo = new THREE.BufferGeometry();
+  var geo = new THREE.BufferGeometry();
   geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-  geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+  geo.setAttribute('color',    new THREE.BufferAttribute(colors,    3));
 
-  const mat = new THREE.PointsMaterial({
-    size: 0.12, vertexColors: true, transparent: true, opacity: 0.7,
-    blending: THREE.AdditiveBlending, depthWrite: false,
+  var mat = new THREE.PointsMaterial({
+    size:         0.13,
+    vertexColors: true,
+    transparent:  true,
+    opacity:      0.72,
+    blending:     THREE.AdditiveBlending,
+    depthWrite:   false
   });
-  const particles = new THREE.Points(geo, mat);
+
+  var particles = new THREE.Points(geo, mat);
   scene.add(particles);
 
-  // Mouse influence
-  let mxN = 0, myN = 0;
-  document.addEventListener('pointermove', e => {
-    mxN = (e.clientX / window.innerWidth - 0.5) * 2;
+  var mxN = 0, myN = 0;
+  document.addEventListener('pointermove', function (e) {
+    mxN = (e.clientX / window.innerWidth  - 0.5) * 2;
     myN = -(e.clientY / window.innerHeight - 0.5) * 2;
   });
 
-  // Resize
-  window.addEventListener('resize', () => {
-    const w2 = window.innerWidth, h2 = window.innerHeight;
-    renderer.setSize(w2, h2);
-    camera.aspect = w2 / h2;
+  window.addEventListener('resize', function () {
+    W = window.innerWidth; H = window.innerHeight;
+    camera.aspect = W / H;
     camera.updateProjectionMatrix();
+    renderer.setSize(W, H);
   });
 
-  // Animate
-  let t = 0;
-  function animate() {
-    requestAnimationFrame(animate);
-    t += 0.0008;
-    const pos = geo.attributes.position.array;
-    for (let i = 0; i < COUNT; i++) {
-      pos[i*3]   += velocities[i*3]   + Math.sin(t + i * 0.01) * 0.002 + mxN * 0.003;
-      pos[i*3+1] += velocities[i*3+1] + Math.cos(t + i * 0.013) * 0.002 + myN * 0.003;
-      pos[i*3+2] += velocities[i*3+2];
-      // Wrap particles
-      if (pos[i*3] > 40) pos[i*3] = -40;
-      if (pos[i*3] < -40) pos[i*3] = 40;
-      if (pos[i*3+1] > 40) pos[i*3+1] = -40;
-      if (pos[i*3+1] < -40) pos[i*3+1] = 40;
-      if (pos[i*3+2] > 30) pos[i*3+2] = -30;
-      if (pos[i*3+2] < -30) pos[i*3+2] = 30;
+  var t = 0;
+  var pos = geo.attributes.position.array;
+
+  (function renderParticles() {
+    requestAnimationFrame(renderParticles);
+    t += 0.0007;
+
+    for (var j = 0; j < COUNT; j++) {
+      pos[j*3]   += velocities[j*3]   + Math.sin(t + j * 0.011) * 0.002 + mxN * 0.003;
+      pos[j*3+1] += velocities[j*3+1] + Math.cos(t + j * 0.013) * 0.002 + myN * 0.003;
+      pos[j*3+2] += velocities[j*3+2];
+      if (pos[j*3]   >  40) pos[j*3]   = -40;
+      if (pos[j*3]   < -40) pos[j*3]   =  40;
+      if (pos[j*3+1] >  40) pos[j*3+1] = -40;
+      if (pos[j*3+1] < -40) pos[j*3+1] =  40;
+      if (pos[j*3+2] >  30) pos[j*3+2] = -30;
+      if (pos[j*3+2] < -30) pos[j*3+2] =  30;
     }
     geo.attributes.position.needsUpdate = true;
-    particles.rotation.y += 0.00015 + mxN * 0.0005;
-    camera.position.x += (mxN * 6 - camera.position.x) * 0.04;
-    camera.position.y += (myN * 4 - camera.position.y) * 0.04;
+
+    particles.rotation.y += 0.00012 + mxN * 0.0004;
+    particles.rotation.x += myN * 0.0002;
+
+    camera.position.x += (mxN * 5  - camera.position.x) * 0.04;
+    camera.position.y += (myN * 3.5 - camera.position.y) * 0.04;
     camera.lookAt(0, 0, 0);
+
     renderer.render(scene, camera);
-  }
-  animate();
+  })();
 })();
 
-// ─── 4D TESSERACT (mathematically correct) ────────────────────
+// ── 11. MATHEMATICALLY CORRECT 4D TESSERACT ─────────────────────
 (function initTesseract() {
   if (!window.THREE) return;
-  const wrap = document.getElementById('tesseract-wrap');
-  const canvas = document.getElementById('tesseract-canvas');
-  const W = 340, H = 340;
-  const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+
+  var canvas = document.getElementById('tesseract-canvas');
+  if (!canvas) return;
+
+  var SIZE = 340;
+  var renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-  renderer.setSize(W, H);
+  renderer.setSize(SIZE, SIZE);
 
-  const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(50, 1, 0.01, 100);
-  camera.position.z = 4;
+  var scene  = new THREE.Scene();
+  var camera = new THREE.PerspectiveCamera(50, 1, 0.01, 100);
+  camera.position.z = 4.5;
+  scene.add(new THREE.AmbientLight(0xffffff, 0.5));
 
-  // Ambient
-  scene.add(new THREE.AmbientLight(0xffffff, 0.6));
-
-  // 4D tesseract: 16 vertices in R^4
-  function makeVerts4D() {
-    const v = [];
-    for (let i = 0; i < 16; i++) {
-      v.push([
-        (i & 1) ? 1 : -1,
-        (i & 2) ? 1 : -1,
-        (i & 4) ? 1 : -1,
-        (i & 8) ? 1 : -1,
-      ]);
-    }
-    return v;
+  // ── 4D vertex set: all 16 corners of a unit hypercube
+  var VERTS4 = [];
+  for (var i = 0; i < 16; i++) {
+    VERTS4.push([
+      (i & 1) ? 1 : -1,
+      (i & 2) ? 1 : -1,
+      (i & 4) ? 1 : -1,
+      (i & 8) ? 1 : -1
+    ]);
   }
 
-  // Edges: pairs that differ in exactly 1 bit
-  function makeEdges4D(verts) {
-    const edges = [];
-    for (let a = 0; a < 16; a++)
-      for (let b = a+1; b < 16; b++) {
-        let diff = 0;
-        for (let k = 0; k < 4; k++) if (verts[a][k] !== verts[b][k]) diff++;
-        if (diff === 1) edges.push([a, b]);
+  // ── 4D edges: vertices that differ in exactly 1 bit
+  var EDGES4 = [];
+  for (var a = 0; a < 16; a++) {
+    for (var b = a + 1; b < 16; b++) {
+      var diff = 0;
+      for (var k = 0; k < 4; k++) {
+        if (VERTS4[a][k] !== VERTS4[b][k]) diff++;
       }
-    return edges;
+      if (diff === 1) EDGES4.push([a, b]);
+    }
   }
 
-  const verts4D = makeVerts4D();
-  const edges4D = makeEdges4D(verts4D);
-
-  // 4D rotation matrices
-  function rot4D(v, plane, angle) {
-    const [i,j] = plane;
-    const c = Math.cos(angle), s = Math.sin(angle);
-    const u = [...v];
-    u[i] = c * v[i] - s * v[j];
-    u[j] = s * v[i] + c * v[j];
+  // ── 4D rotation: rotate in a given plane by angle
+  function rotate4D(v, plane, angle) {
+    var ii = plane[0], jj = plane[1];
+    var c = Math.cos(angle), s = Math.sin(angle);
+    var u = v.slice();
+    u[ii] = c * v[ii] - s * v[jj];
+    u[jj] = s * v[ii] + c * v[jj];
     return u;
   }
 
-  // Project 4D → 3D via perspective
+  // ── 4D → 3D perspective projection
   function project4to3(v) {
-    const w = 2.0 / (2.0 - v[3]);
+    var w = 2.5 / (2.5 - v[3]);
     return new THREE.Vector3(v[0] * w, v[1] * w, v[2] * w);
   }
 
-  // Build line objects
-  const lineMat = new THREE.LineBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.85 });
-  const lineObjs = edges4D.map(() => {
-    const geo = new THREE.BufferGeometry();
-    const pts = [new THREE.Vector3(), new THREE.Vector3()];
+  // ── Build inner & outer cube coloring (depth = 4th coord)
+  function edgeColor(a, b) {
+    var avgW = (VERTS4[a][3] + VERTS4[b][3]) / 2;
+    return avgW > 0 ? 0x38bdf8 : 0xe11d48; // cyan = outer, pink = inner
+  }
+
+  // ── Create line objects with per-edge color
+  var lineObjs = EDGES4.map(function (edge) {
+    var mat = new THREE.LineBasicMaterial({
+      color:       edgeColor(edge[0], edge[1]),
+      transparent: true,
+      opacity:     0.9,
+      linewidth:   1
+    });
+    var geo  = new THREE.BufferGeometry();
+    var pts  = [new THREE.Vector3(), new THREE.Vector3()];
     geo.setFromPoints(pts);
-    const line = new THREE.Line(geo, lineMat.clone());
+    var line = new THREE.Line(geo, mat);
     scene.add(line);
-    return { line, geo };
+    return { line: line, geo: geo };
   });
 
-  // Vertex glow spheres
-  const sphereMat = new THREE.MeshBasicMaterial({ color: 0xe11d48 });
-  const sphereGeo = new THREE.SphereGeometry(0.06, 8, 8);
-  const spheres = verts4D.map(() => {
-    const mesh = new THREE.Mesh(sphereGeo, sphereMat.clone());
+  // ── Vertex glow spheres
+  var sGeo = new THREE.SphereGeometry(0.055, 8, 8);
+  var spheres = VERTS4.map(function (v) {
+    var col = v[3] > 0 ? 0x38bdf8 : 0xe11d48;
+    var mat  = new THREE.MeshBasicMaterial({ color: col });
+    var mesh = new THREE.Mesh(sGeo, mat);
     scene.add(mesh);
     return mesh;
   });
 
-  // Orbit Controls (manual for zero-dependency)
-  let isDragging = false, lastMX = 0, lastMY = 0;
-  let rotX = 0, rotY = 0, zoom = 1;
+  // ── Drag rotation state
+  var dragging = false, lastDX = 0, lastDY = 0;
+  var dragRotX = 0, dragRotY = 0;
+  var zoomLevel = 1;
 
-  canvas.addEventListener('pointerdown', e => { isDragging = true; lastMX = e.clientX; lastMY = e.clientY; });
-  canvas.addEventListener('pointerup', () => { isDragging = false; });
-  canvas.addEventListener('pointermove', e => {
-    if (!isDragging) return;
-    rotY += (e.clientX - lastMX) * 0.01;
-    rotX += (e.clientY - lastMY) * 0.01;
-    lastMX = e.clientX; lastMY = e.clientY;
+  canvas.addEventListener('pointerdown', function (e) {
+    dragging = true; lastDX = e.clientX; lastDY = e.clientY;
+    canvas.setPointerCapture(e.pointerId);
   });
-  canvas.addEventListener('wheel', e => {
-    zoom = Math.max(0.5, Math.min(3, zoom + e.deltaY * 0.002));
-    camera.position.z = 4 * zoom;
+  canvas.addEventListener('pointerup',   function () { dragging = false; });
+  canvas.addEventListener('pointermove', function (e) {
+    if (!dragging) return;
+    dragRotY += (e.clientX - lastDX) * 0.012;
+    dragRotX += (e.clientY - lastDY) * 0.012;
+    lastDX = e.clientX; lastDY = e.clientY;
   });
+  canvas.addEventListener('wheel', function (e) {
+    e.preventDefault();
+    zoomLevel = Math.max(0.5, Math.min(3.0, zoomLevel + e.deltaY * 0.002));
+    camera.position.z = 4.5 * zoomLevel;
+  }, { passive: false });
 
-  let t = 0;
-  function animate() {
-    requestAnimationFrame(animate);
-    t += 0.006;
+  // ── Main tesseract render loop
+  var tTime = 0;
+  (function renderTesseract() {
+    requestAnimationFrame(renderTesseract);
+    tTime += 0.007;
 
-    // Auto 4D rotations in multiple planes
-    let rotated = verts4D.map(v => {
-      let u = v;
-      u = rot4D(u, [0,3], t * 0.7);
-      u = rot4D(u, [1,2], t * 0.5);
-      u = rot4D(u, [0,2], t * 0.3);
-      u = rot4D(u, [1,3], t * 0.4);
+    // Apply 4 simultaneous 4D rotations in different hyperplanes
+    var rotated = VERTS4.map(function (v) {
+      var u = v;
+      u = rotate4D(u, [0, 3], tTime * 0.55);
+      u = rotate4D(u, [1, 2], tTime * 0.40);
+      u = rotate4D(u, [0, 2], tTime * 0.28);
+      u = rotate4D(u, [1, 3], tTime * 0.35);
       return u;
     });
 
-    // Manual 3D rotation overlay from drag
-    const cosX = Math.cos(rotX), sinX = Math.sin(rotX);
-    const cosY = Math.cos(rotY), sinY = Math.sin(rotY);
+    // Project to 3D
+    var projected = rotated.map(project4to3);
 
-    const projected = rotated.map(v => {
-      let p = project4to3(v);
-      // Apply drag rotation
-      let y2 = cosX * p.y - sinX * p.z;
-      let z2 = sinX * p.y + cosX * p.z;
-      let x2 = cosY * p.x + sinY * z2;
-      let z3 = -sinY * p.x + cosY * z2;
-      return new THREE.Vector3(x2, y2, z3);
+    // Apply drag rotation in 3D space on top
+    var cX = Math.cos(dragRotX), sX = Math.sin(dragRotX);
+    var cY = Math.cos(dragRotY), sY = Math.sin(dragRotY);
+
+    projected = projected.map(function (p) {
+      // Rotate X
+      var y1 = cX * p.y - sX * p.z;
+      var z1 = sX * p.y + cX * p.z;
+      // Rotate Y
+      var x2 = cY * p.x + sY * z1;
+      var z2 = -sY * p.x + cY * z1;
+      return new THREE.Vector3(x2, y1, z2);
     });
 
-    // Update edges
-    edges4D.forEach(([a,b], i) => {
-      const { line, geo } = lineObjs[i];
-      geo.setFromPoints([projected[a], projected[b]]);
+    // Update edge geometries
+    EDGES4.forEach(function (edge, idx) {
+      lineObjs[idx].geo.setFromPoints([projected[edge[0]], projected[edge[1]]]);
     });
 
     // Update vertex spheres
-    projected.forEach((p, i) => { spheres[i].position.copy(p); });
+    projected.forEach(function (p, idx) {
+      spheres[idx].position.copy(p);
+    });
 
     renderer.render(scene, camera);
-  }
-  animate();
+  })();
 })();

@@ -10,17 +10,23 @@
    - Dark buildings with emissive edges only
    - Minimap
    ================================================================ */
-import * as THREE              from 'three';
-import { EffectComposer }      from 'three/addons/postprocessing/EffectComposer.js';
-import { RenderPass }          from 'three/addons/postprocessing/RenderPass.js';
-import { UnrealBloomPass }     from 'three/addons/postprocessing/UnrealBloomPass.js';
-import { OutputPass }          from 'three/addons/postprocessing/OutputPass.js';
-import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
+// Full CDN imports — works on file://, live server, GitHub Pages, Netlify
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.163.0/build/three.module.js';
+import { EffectComposer } from 'https://cdn.jsdelivr.net/npm/three@0.163.0/examples/jsm/postprocessing/EffectComposer.js';
+import { RenderPass }     from 'https://cdn.jsdelivr.net/npm/three@0.163.0/examples/jsm/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'https://cdn.jsdelivr.net/npm/three@0.163.0/examples/jsm/postprocessing/UnrealBloomPass.js';
+import { OutputPass }      from 'https://cdn.jsdelivr.net/npm/three@0.163.0/examples/jsm/postprocessing/OutputPass.js';
+import { CSS2DRenderer, CSS2DObject } from 'https://cdn.jsdelivr.net/npm/three@0.163.0/examples/jsm/renderers/CSS2DRenderer.js';
 
-/* ── Guard ── */
-if(!window.PD){ const m='FATAL: data.js not loaded'; console.error(m); throw new Error(m); }
-const PD=window.PD;
-const expand=window.expandForSpeech||(t=>t);
+/* ── Data guard ── */
+if (!window.PD) {
+  console.error('[world.js] FATAL: data.js not loaded before world.js. Check script order in index.html.');
+  const el = document.getElementById('speech-text');
+  if (el) el.textContent = 'ERROR: data.js missing. Check console.';
+  throw new Error('PD not defined');
+}
+const PD     = window.PD;
+const expand = window.expandForSpeech || (t => t);
 
 /* ── Helpers ── */
 const $  =id=>document.getElementById(id);
@@ -941,9 +947,37 @@ document.addEventListener('pointerdown',e=>{
   if(el){const obj=[...scene.children].find(c=>c.isCSS2DObject&&c.element===el);if(obj?.userData?.info){buildPanel(obj.userData.info);aidaSay(obj.userData.info.speech||obj.userData.info.title||'',obj.userData.info.title||'');}}
 });
 
-/* Logo → about */
-const avaWrap=$('ava-wrap');
-if(avaWrap) avaWrap.addEventListener('click',()=>{ setZone(1);aidaSay(expand('About Ujas Dubal. Amazon Web Services Data Engineer and Technical Lead from Ahmedabad, India.'),'ABOUT'); });
+/* ── Logo / avatar click → replay start overlay ── */
+const avaWrap = $('ava-wrap');
+if (avaWrap) {
+  avaWrap.addEventListener('click', () => {
+
+    // 1. Stop voice and music
+    stopSpeech();
+    stopMusic();
+
+    // 2. Reset nanobot canvas
+    nanoActive = true;
+    nanoStart  = null;
+    initNanobots();
+
+    // 3. Re-show the start overlay with fade-in
+    const so = $('start-overlay');
+    if (so) {
+      so.style.display = 'flex';
+      so.style.opacity = '0';
+      so.classList.remove('gone');
+      requestAnimationFrame(() => {
+        so.style.transition = 'opacity 0.6s';
+        so.style.opacity    = '1';
+      });
+    }
+
+    // 4. Restart nanobot animation
+    if (nanoRAF) cancelAnimationFrame(nanoRAF);
+    nanoRAF = requestAnimationFrame(nanoLoop);
+  });
+}
 
 /* ═══════════════════════════════════════════════════════════
    15. INFO PANEL BUILDER
@@ -1063,7 +1097,7 @@ function drawMinimap(){
   for(let i=0;i<=10;i++){mmCtx.beginPath();mmCtx.moveTo(i*20,0);mmCtx.lineTo(i*20,200);mmCtx.stroke();mmCtx.beginPath();mmCtx.moveTo(0,i*20);mmCtx.lineTo(200,i*20);mmCtx.stroke();}
   /* zone dots */
   ZONES.forEach((z,i)=>{
-    const mx=(z.lx+100)/1.2,(my=(z.lz+60)/0.65);
+    const mx=(z.lx+100)/1.2,my=(z.lz+60)/0.65;
     mmCtx.fillStyle=i===curZone?'#00f5ff':'rgba(0,245,255,.4)';
     mmCtx.beginPath();mmCtx.arc(mx,my,i===curZone?5:3,0,Math.PI*2);mmCtx.fill();
     mmCtx.fillStyle='rgba(0,245,255,.7)';mmCtx.font='8px Share Tech Mono';mmCtx.fillText(z.name,mx+6,my+3);

@@ -125,3 +125,7 @@ window.PD = {
 
 console.log('[data.js] PD loaded —', Object.keys(window.PD).length,'keys');
 }());
+
+// Guard: notify world.js that data is ready
+window.__PD_READY__ = true;
+document.dispatchEvent(new CustomEvent('pd-ready'));

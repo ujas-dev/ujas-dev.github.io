@@ -6,9 +6,7 @@ Personal portfolio of Ujas Jayeshkumar Dubal — AWS Data Engineer and Technical
 with 8.5+ years of experience building cloud-native data pipelines using Python, PySpark,
 Redshift, Glue, Airflow and Databricks.
 
-================================================================================
-FEATURES
-================================================================================
+## FEATURES
 
 - Zero dependencies — pure HTML, CSS and vanilla JS. No npm, no build step, no framework
 - GitHub Pages ready — drop index.html in root and it works instantly
@@ -27,9 +25,7 @@ FEATURES
 - Accessible — semantic HTML, ARIA labels, keyboard navigation, aria-live news feed
 - Particle background — lightweight canvas animation, no Three.js
 
-================================================================================
-REPOSITORY STRUCTURE
-================================================================================
+## REPOSITORY STRUCTURE
 
 /
 ├── index.html                                   Main single-file portfolio
@@ -42,23 +38,21 @@ REPOSITORY STRUCTURE
 ├── _config.yml                                  Jekyll / GitHub Pages config
 └── README.md                                    This file
 
-================================================================================
-SETUP IN 5 MINUTES
-================================================================================
+## SETUP IN 5 MINUTES
 
-STEP 1 — Fork or clone this repo
----------------------------------
+### STEP 1 — Fork or clone this repo
+
   git clone https://github.com/ujas-dev/ujas-dev.github.io.git
   cd ujas-dev.github.io
 
-STEP 2 — Add your photo
----------------------------------
+### STEP 2 — Add your photo
+
   Place your photo at:  assets/avatar.jpg
   Recommended: square, minimum 400x400px, JPEG or WebP
   If missing, the site shows UD initials gracefully — nothing breaks.
 
-STEP 3 — Set up Formspree (contact form)
----------------------------------
+### STEP 3 — Set up Formspree (contact form)
+
   1. Go to https://formspree.io/new  (free account, no credit card)
   2. Create a new form — copy your Form ID  e.g.  xpwzabcd
   3. In index.html find this line:
@@ -71,8 +65,8 @@ STEP 3 — Set up Formspree (contact form)
   In Gmail, filter by:  to:ujasdubal+portfolio@gmail.com
   to see all portfolio enquiries in one place.
 
-STEP 4 — Update canonical URL
----------------------------------
+### STEP 4 — Update canonical URL
+
   In index.html <head>, update these 3 lines with your real GitHub Pages URL:
 
     <link rel="canonical" href="https://YOUR-USERNAME.github.io/"/>
@@ -83,8 +77,8 @@ STEP 4 — Update canonical URL
     "url": "https://YOUR-USERNAME.github.io/",
     "@id": "https://YOUR-USERNAME.github.io/#person"
 
-STEP 5 — Enable GitHub Pages
----------------------------------
+### STEP 5 — Enable GitHub Pages
+
   Option A (recommended — uses deploy.yml workflow):
     Go to Settings -> Pages -> Source -> GitHub Actions -> Save
     Then push to main — the workflow deploys automatically.
@@ -93,9 +87,7 @@ STEP 5 — Enable GitHub Pages
     Go to Settings -> Pages -> Source -> Deploy from a branch
     Branch: main / master -> / (root) -> Save
 
-================================================================================
-SEO STRATEGY
-================================================================================
+## SEO STRATEGY
 
 This portfolio is built to rank on the first page for your name and related keywords.
 
@@ -124,9 +116,7 @@ This portfolio is built to rank on the first page for your name and related keyw
     - Cloud Data Engineer Gujarat
     - Technical Lead Data Engineering India
 
-================================================================================
-LIVE NEWS FEED — 3-PROXY WATERFALL
-================================================================================
+## LIVE NEWS FEED — 3-PROXY WATERFALL
 
   1. rss2json.com API    -> clean JSON, best quality
          | fails?
@@ -141,9 +131,7 @@ LIVE NEWS FEED — 3-PROXY WATERFALL
   Results are deduplicated by title, sorted by date descending,
   and cached per browser session. Hit the refresh button to force reload.
 
-================================================================================
-CONTACT FORM FLOW
-================================================================================
+## CONTACT FORM FLOW
 
   User fills form
        |
@@ -159,9 +147,7 @@ CONTACT FORM FLOW
   If YOUR_FORMSPREE_ID is not yet replaced, the form opens a
   pre-filled mailto: link — nothing ever breaks silently.
 
-================================================================================
-CUSTOMISATION — JS DATA ARRAYS
-================================================================================
+## CUSTOMISATION — JS DATA ARRAYS
 
 All content lives in JS arrays inside the <script> block in index.html.
 No external JSON files, no API calls, no build step needed.
@@ -177,9 +163,7 @@ No external JSON files, no API calls, no build step needed.
   RSS_FEEDS         RSS URLs per category for the news drawer
   FALLBACK_NEWS     Static articles shown if all live feeds fail
 
-================================================================================
-SECTIONS
-================================================================================
+## SECTIONS
 
   #hero            Name, role, stats, CTA buttons, avatar
   #about           Profile, education, awards, core expertise
@@ -190,9 +174,7 @@ SECTIONS
   #misc            National hackathon + GLS University web project
   #contact         Links + Formspree contact form
 
-================================================================================
-BROWSER SUPPORT
-================================================================================
+## BROWSER SUPPORT
 
   Chrome 90+    Full support
   Firefox 90+   Full support
@@ -200,13 +182,11 @@ BROWSER SUPPORT
   Edge 90+      Full support
   Mobile        Fully responsive, tested on iOS Safari and Chrome Android
 
-================================================================================
-LICENSE
-================================================================================
+## LICENSE
 
 MIT — free to use, fork, and adapt for your own portfolio.
 
-================================================================================
+---
 
 Built by Ujas Jayeshkumar Dubal
 AWS Data Engineer and Technical Lead

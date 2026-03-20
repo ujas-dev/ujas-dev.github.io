@@ -1,905 +1,1083 @@
 /* ================================================================
-   UJAS DUBAL — world.js
-   Full procedural 3D cartoon data world. No GSAP. No scrollTo.
-   Three.js r152 · WebGL · Web Audio · Web Speech · Fetch news
+   world.js  — Ujas Dubal 3D Portfolio
+   Zero GSAP · Zero ScrollTrigger · Zero scrollTo conflict
+   Wraps in window.onload to guarantee THREE + PD are ready
    ================================================================ */
-(function () {
-'use strict';
 
-var PD = window.PD;
-if (!PD || !window.THREE) { console.error('Missing PD or THREE'); return; }
-var T = THREE;
+window.addEventListener('load', function () {
 
-/* ── DOM refs ─────────────────────────────────────────────── */
-function qs(s) { return document.querySelector(s); }
-function qsa(s){ return document.querySelectorAll(s); }
+  /* ── Guard: confirm libraries loaded ─────────────────────── */
+  if (typeof THREE === 'undefined') {
+    document.getElementById('aida-msg').textContent =
+      'THREE.js failed to load. Check internet connection.';
+    return;
+  }
+  if (typeof window.PD === 'undefined') {
+    document.getElementById('aida-msg').textContent =
+      'Portfolio data failed to load.';
+    return;
+  }
 
-var canvas     = qs('#world');
-var aidaMsg    = qs('#aida-msg');
-var aidaMouth  = qs('#aida-mouth');
-var zoneLbl    = qs('#zone-label');
-var infoPanel  = qs('#info-panel');
-var infoCont   = qs('#info-content');
-var startOvl   = qs('#start-overlay');
-var contactMod = qs('#contact-modal');
-var btnMusic   = qs('#btn-music');
-var btnNews    = qs('#btn-news');
+  var PD = window.PD;
+  var T  = THREE;
 
-/* ═══════════════════════════════════════════════════════════
-   1. THREE.JS RENDERER + SCENE
-═══════════════════════════════════════════════════════════ */
-var renderer = new T.WebGLRenderer({ canvas:canvas, antialias:true, alpha:false });
-renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-renderer.setSize(innerWidth, innerHeight);
-renderer.shadowMap.enabled = true;
-renderer.shadowMap.type    = T.PCFSoftShadowMap;
-renderer.outputEncoding    = T.sRGBEncoding;
-renderer.toneMapping       = T.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.1;
+  /* ── DOM helpers ──────────────────────────────────────────── */
+  function qs(s)  { return document.querySelector(s); }
+  function qsa(s) { return document.querySelectorAll(s); }
+  function el(id) { return document.getElementById(id); }
 
-var scene  = new T.Scene();
-scene.background = new T.Color(0x020617);
-scene.fog = new T.FogExp2(0x020617, 0.025);
+  /* ── Safe navigation (NEVER named scrollTo) ───────────────── */
+  function flyToZone(idx) { setZone(idx); }
 
-var camera = new T.PerspectiveCamera(55, innerWidth/innerHeight, 0.1, 500);
-camera.position.set(0, 18, 38);
-camera.lookAt(0, 0, 0);
+  /* ═══════════════════════════════════════════════════════════
+     1.  RENDERER + SCENE + CAMERA
+  ═══════════════════════════════════════════════════════════ */
+  var canvas   = el('world');
+  var W = window.innerWidth, H = window.innerHeight;
 
-window.addEventListener('resize', function(){
-  camera.aspect = innerWidth/innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(innerWidth, innerHeight);
-});
-
-/* ═══════════════════════════════════════════════════════════
-   2. ORBIT CONTROLS (manual — no import needed)
-═══════════════════════════════════════════════════════════ */
-var orbit = {
-  spherical: { theta: 0, phi: Math.PI/3, r: 38 },
-  target: new T.Vector3(0, 0, 0),
-  down: false, lx: 0, ly: 0, lerp: { theta:0, phi:Math.PI/3, r:38 }
-};
-
-canvas.addEventListener('pointerdown', function(e){ orbit.down=true; orbit.lx=e.clientX; orbit.ly=e.clientY; });
-canvas.addEventListener('pointerup',   function(){ orbit.down=false; });
-canvas.addEventListener('pointermove', function(e){
-  if (!orbit.down) return;
-  orbit.spherical.theta -= (e.clientX - orbit.lx) * 0.006;
-  orbit.spherical.phi   -= (e.clientY - orbit.ly) * 0.004;
-  orbit.spherical.phi    = Math.max(0.15, Math.min(Math.PI/2.1, orbit.spherical.phi));
-  orbit.lx=e.clientX; orbit.ly=e.clientY;
-});
-canvas.addEventListener('wheel', function(e){
-  orbit.spherical.r = Math.max(8, Math.min(80, orbit.spherical.r + e.deltaY * 0.04));
-  e.preventDefault();
-}, { passive:false });
-
-function updateCamera() {
-  orbit.lerp.theta += (orbit.spherical.theta - orbit.lerp.theta) * 0.08;
-  orbit.lerp.phi   += (orbit.spherical.phi   - orbit.lerp.phi  ) * 0.08;
-  orbit.lerp.r     += (orbit.spherical.r     - orbit.lerp.r    ) * 0.08;
-  var s = orbit.lerp;
-  camera.position.set(
-    orbit.target.x + s.r * Math.sin(s.phi) * Math.sin(s.theta),
-    orbit.target.y + s.r * Math.cos(s.phi),
-    orbit.target.z + s.r * Math.sin(s.phi) * Math.cos(s.theta)
-  );
-  camera.lookAt(orbit.target);
-}
-
-/* ═══════════════════════════════════════════════════════════
-   3. LIGHTS
-═══════════════════════════════════════════════════════════ */
-scene.add(new T.AmbientLight(0x112244, 1.2));
-
-var sun = new T.DirectionalLight(0x88ccff, 1.6);
-sun.position.set(30, 50, 20);
-sun.castShadow = true;
-sun.shadow.mapSize.set(2048, 2048);
-sun.shadow.camera.near = 1;
-sun.shadow.camera.far  = 200;
-sun.shadow.camera.left = -60;
-sun.shadow.camera.right = 60;
-sun.shadow.camera.top   = 60;
-sun.shadow.camera.bottom= -60;
-scene.add(sun);
-
-/* Coloured point lights for atmosphere */
-[[0x00ffff,0,10,0, 40],
- [0xff00ff,-30,8,-15,35],
- [0x00ff88, 30,8, 15,35]].forEach(function(l){
-  var pl = new T.PointLight(l[0],1.2,l[4]);
-  pl.position.set(l[1],l[2],l[3]);
-  scene.add(pl);
-});
-
-/* ═══════════════════════════════════════════════════════════
-   4. PROCEDURAL 3D WORLD GEOMETRY
-   All built with Three.js primitives — no external models
-═══════════════════════════════════════════════════════════ */
-
-/* Helper: toon material */
-function mat(col, rough) {
-  return new T.MeshToonMaterial({ color:col, roughness:rough||0.8 });
-}
-function matL(col, emissive, intensity) {
-  return new T.MeshStandardMaterial({ color:col, emissive:emissive||col, emissiveIntensity:intensity||0.3, roughness:.7 });
-}
-
-var clickables = [];   // objects that respond to raycaster clicks
-var floating   = [];   // objects that bob up/down
-var spinners   = [];   // objects that spin
-
-/* ── Grid floor ── */
-(function buildFloor(){
-  var g = new T.PlaneGeometry(200, 200, 40, 40);
-  var m = new T.MeshStandardMaterial({
-    color: 0x020c1e, roughness: 1,
-    wireframe: false, metalness: 0.1
+  var renderer = new T.WebGLRenderer({
+    canvas: canvas, antialias: true, alpha: false
   });
-  var mesh = new T.Mesh(g, m);
-  mesh.rotation.x = -Math.PI/2;
-  mesh.receiveShadow = true;
-  scene.add(mesh);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setSize(W, H);
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type    = T.PCFSoftShadowMap;
+  /* NOTE: outputEncoding and toneMapping removed — causes warnings in r152 */
 
-  /* Grid lines on top */
-  var gl = new T.GridHelper(200, 40, 0x00ffff, 0x002244);
-  gl.material.opacity = 0.35;
-  gl.material.transparent = true;
-  gl.position.y = 0.01;
-  scene.add(gl);
-})();
+  var scene  = new T.Scene();
+  scene.background = new T.Color(0x020617);
+  scene.fog        = new T.FogExp2(0x020617, 0.022);
 
-/* ── Floating island builder ── */
-function makeIsland(x, z, radius, color, height) {
-  var h = height || 1.2;
-  var g = new T.CylinderGeometry(radius, radius*1.3, h, 7);
-  var m = new T.Mesh(g, mat(color || 0x0a1a3a));
-  m.position.set(x, -0.4, z);
-  m.castShadow = true; m.receiveShadow = true;
-  scene.add(m);
-  /* Top ring glow */
-  var rg = new T.TorusGeometry(radius*1.02, 0.07, 8, 40);
-  var rm = new T.Mesh(rg, matL(0x00ffff, 0x00ffff, 0.8));
-  rm.rotation.x = Math.PI/2;
-  rm.position.set(x, h/2 - 0.4, z);
-  scene.add(rm);
-  return m;
-}
+  var camera = new T.PerspectiveCamera(55, W / H, 0.1, 500);
+  camera.position.set(0, 20, 42);
+  camera.lookAt(0, 0, 0);
 
-/* ── Glowing data tower builder ── */
-function makeTower(x, z, h, color, label, userData) {
-  var g  = new T.BoxGeometry(1.4, h, 1.4);
-  var m  = new T.Mesh(g, matL(color, color, 0.4));
-  m.position.set(x, h/2, z);
-  m.castShadow = true;
-  if (label)    m.userData.label    = label;
-  if (userData) m.userData.info     = userData;
-  m.userData.baseY = h/2;
-  m.userData.baseColor = color;
-  scene.add(m);
-  clickables.push(m);
-  floating.push({ mesh:m, speed:0.5+Math.random()*0.5, amp:0.15, phase:Math.random()*Math.PI*2 });
-
-  /* Top cap */
-  var cg = new T.BoxGeometry(1.8, 0.25, 1.8);
-  var cm = new T.Mesh(cg, matL(color, color, 0.8));
-  cm.position.set(x, h + 0.12, z);
-  scene.add(cm);
-
-  /* Glow ring around tower */
-  var tg = new T.TorusGeometry(1.1, 0.05, 6, 32);
-  var tm = new T.Mesh(tg, matL(color, color, 1.2));
-  tm.rotation.x = Math.PI/2;
-  tm.position.set(x, h*0.5, z);
-  spinners.push({ mesh:tm, axis:'y', speed:0.012 });
-  scene.add(tm);
-
-  return m;
-}
-
-/* ── Floating ring portal ── */
-function makePortal(x, y, z, col, rInner, rOuter) {
-  var g = new T.TorusGeometry(rInner||2.5, rOuter||0.18, 12, 60);
-  var m = new T.Mesh(g, matL(col, col, 1.5));
-  m.position.set(x, y, z);
-  spinners.push({ mesh:m, axis:'y', speed:0.007 });
-  scene.add(m);
-  /* Inner glow disc */
-  var dg = new T.CircleGeometry(rInner||2.5, 32);
-  var dm = new T.Mesh(dg, new T.MeshBasicMaterial({ color:col, transparent:true, opacity:0.07, side:T.DoubleSide }));
-  dm.position.set(x, y, z);
-  scene.add(dm);
-  return m;
-}
-
-/* ── Data stream tubes (animated) ── */
-var dataStreams = [];
-function makeDataStream(from, to, col) {
-  var dir = new T.Vector3().subVectors(to, from);
-  var len = dir.length();
-  var g = new T.CylinderGeometry(0.04, 0.04, len, 6);
-  var m = new T.Mesh(g, matL(col, col, 2.0));
-  m.position.copy(from).addScaledVector(dir.normalize(), len/2);
-  m.quaternion.setFromUnitVectors(new T.Vector3(0,1,0), dir);
-  scene.add(m);
-  /* Moving particle along stream */
-  var pg = new T.SphereGeometry(0.12, 6, 6);
-  var pm = new T.Mesh(pg, matL(col, col, 3));
-  scene.add(pm);
-  dataStreams.push({ particle:pm, from:from.clone(), to:to.clone(), t:Math.random(), speed:0.004+Math.random()*0.006 });
-}
-
-/* ── AIDA robot character (procedural geometry) ── */
-var AIDA = (function buildAIDA() {
-  var group = new T.Group();
-
-  /* Body */
-  var body = new T.Mesh(
-    new T.BoxGeometry(1.2, 1.4, 0.8),
-    matL(0x0a2a5a, 0x00ffff, 0.3)
-  );
-  body.castShadow = true;
-  group.add(body);
-
-  /* Chest screen glow */
-  var screen = new T.Mesh(
-    new T.BoxGeometry(0.7, 0.5, 0.05),
-    matL(0x001133, 0x00ffff, 1.2)
-  );
-  screen.position.set(0, 0.1, 0.43);
-  group.add(screen);
-
-  /* Head */
-  var head = new T.Mesh(
-    new T.BoxGeometry(0.9, 0.85, 0.8),
-    matL(0x0d2b55, 0x00ffff, 0.25)
-  );
-  head.position.set(0, 1.12, 0);
-  head.castShadow = true;
-  group.add(head);
-
-  /* Eyes */
-  [[-.22,1.18,.41],[.22,1.18,.41]].forEach(function(p){
-    var eye = new T.Mesh(
-      new T.SphereGeometry(0.12, 8, 8),
-      new T.MeshBasicMaterial({ color:0x00ffff })
-    );
-    eye.position.set(p[0],p[1],p[2]);
-    group.add(eye);
-    /* Eye glow */
-    var eg = new T.PointLight(0x00ffff, 0.8, 2.5);
-    eg.position.copy(eye.position);
-    group.add(eg);
+  window.addEventListener('resize', function () {
+    W = window.innerWidth; H = window.innerHeight;
+    camera.aspect = W / H;
+    camera.updateProjectionMatrix();
+    renderer.setSize(W, H);
   });
 
-  /* Antenna */
-  var ant = new T.Mesh(
-    new T.CylinderGeometry(0.04, 0.04, 0.6, 6),
-    matL(0x00ffff, 0x00ffff, 1)
-  );
-  ant.position.set(0, 1.87, 0);
-  group.add(ant);
-  var antBall = new T.Mesh(
-    new T.SphereGeometry(0.12, 8, 8),
-    new T.MeshBasicMaterial({ color:0x00ffff })
-  );
-  antBall.position.set(0, 2.22, 0);
-  group.add(antBall);
-  var antLight = new T.PointLight(0x00ffff, 1.5, 4);
-  antLight.position.set(0, 2.2, 0);
-  group.add(antLight);
-
-  /* Arms */
-  [[-0.72, 0.15, 0], [0.72, 0.15, 0]].forEach(function(p, i){
-    var arm = new T.Mesh(
-      new T.CylinderGeometry(0.15, 0.12, 0.9, 6),
-      matL(0x0a2a5a, 0x00ffff, 0.2)
-    );
-    arm.position.set(p[0], p[1], p[2]);
-    arm.rotation.z = (i===0 ? 1 : -1) * 0.3;
-    arm.castShadow = true;
-    group.add(arm);
-  });
-
-  /* Legs */
-  [[-0.3,-0.9,0],[0.3,-0.9,0]].forEach(function(p){
-    var leg = new T.Mesh(
-      new T.CylinderGeometry(0.18, 0.14, 0.85, 6),
-      matL(0x061428, 0x00ffff, 0.15)
-    );
-    leg.position.set(p[0],p[1],p[2]);
-    leg.castShadow = true;
-    group.add(leg);
-  });
-
-  /* Scale and position */
-  group.scale.setScalar(0.75);
-  group.position.set(0, 1.5, 8);
-  scene.add(group);
-
-  return {
-    group: group,
-    head:  head,
-    antLight: antLight,
-    screen: screen,
-    targetPos: new T.Vector3(0, 1.5, 8),
-    phase: 0
+  /* ═══════════════════════════════════════════════════════════
+     2.  MANUAL ORBIT CONTROLS (no import needed)
+  ═══════════════════════════════════════════════════════════ */
+  var orb = {
+    theta: 0, phi: Math.PI / 3.2, r: 42,
+    ltheta: 0, lphi: Math.PI / 3.2, lr: 42,
+    tx: 0, ty: 0, tz: 0,
+    ltx: 0, lty: 0, ltz: 0,
+    down: false, lmx: 0, lmy: 0,
+    isDragging: false, dragStartX: 0, dragStartY: 0
   };
-})();
 
-/* ── BUILD ZONES ────────────────────────────────────────── */
-
-/* Zone 0: HOME — central launch pad */
-makeIsland(0, 0, 7, 0x061830, 1.5);
-makePortal(0, 5, 0, 0x00ffff, 3, 0.22);
-makePortal(0, 5, 0, 0xff00ff, 4.5, 0.12);
-
-/* Hero name floating text (using 3D box proxies — text mesh needs font) */
-var heroBox = new T.Mesh(
-  new T.BoxGeometry(8, 1.5, 0.2),
-  matL(0x001133, 0x00ffff, 0.5)
-);
-heroBox.position.set(0, 8, 0);
-heroBox.userData.label = "Ujas Dubal";
-heroBox.userData.info  = {
-  type: 'home',
-  name: PD.name, title: PD.title, tagline: PD.tagline, stats: PD.stats
-};
-clickables.push(heroBox);
-floating.push({ mesh:heroBox, speed:0.4, amp:0.3, phase:0 });
-spinners.push({ mesh:heroBox, axis:'y', speed:0.003 });
-scene.add(heroBox);
-
-/* Stats orbs around center */
-PD.stats.forEach(function(s, i){
-  var a = (i/PD.stats.length)*Math.PI*2;
-  var orb = new T.Mesh(
-    new T.SphereGeometry(0.6, 8, 8),
-    matL(0x00ffff, 0x00ffff, 0.6)
-  );
-  orb.position.set(Math.cos(a)*5.5, 3 + Math.sin(i)*0.5, Math.sin(a)*5.5);
-  orb.userData.label = s.v + ' ' + s.l;
-  orb.userData.info  = { type:'stat', v:s.v, l:s.l };
-  orb.userData.speech= s.v + ' ' + s.l;
-  clickables.push(orb);
-  floating.push({ mesh:orb, speed:0.6+i*0.1, amp:0.25, phase:i*1.2 });
-  scene.add(orb);
-});
-
-/* Zone 1: ABOUT — island at -25, 0, -10 */
-var aboutIsland = makeIsland(-25, -10, 5, 0x0a1f0a, 1.3);
-makeTower(-25, -10, 4.5, 0x00ff88, "Who I Am", {
-  type:'about',
-  name: PD.name,
-  title: PD.title,
-  tagline: PD.tagline,
-  speech: "I am Ujas Dubal, AWS Data Engineer and Technical Lead from Ahmedabad India with 8.5 years of experience.",
-  points: [
-    "8.5+ years IT · 5+ years Data Engineering",
-    "Technical Lead · 1.5+ years leadership",
-    "M.Sc IT – GLS University 2019",
-    "B.E. Electronics – GTU 2015",
-    "TCS On-the-Spot Award 2023 · CoA 2024"
-  ]
-});
-makeDataStream(new T.Vector3(0,2,0), new T.Vector3(-25,2,-10), 0x00ff88);
-
-/* Zone 2: SKILLS — island at 25, 0, -10 */
-makeIsland(25, -10, 6, 0x1a0a2a, 1.3);
-PD.skills.forEach(function(sk, i){
-  var a = (i/PD.skills.length)*Math.PI*2;
-  var r = 3.5 + (i%2)*1.2;
-  makeTower(
-    25 + Math.cos(a)*r, -10,
-    1.5 + sk.level/30,
-    sk.col,
-    sk.name,
-    { type:'skill', name:sk.name, level:sk.level, speech:sk.name + ' — ' + sk.level + ' percent proficiency.' }
-  );
-});
-makeDataStream(new T.Vector3(0,2,0), new T.Vector3(25,2,-10), 0xff00ff);
-
-/* Zone 3: EXPERIENCE — island at 0, 0, -30 */
-makeIsland(0, -30, 8, 0x1a0f00, 1.5);
-PD.experience.forEach(function(e, i){
-  var x = (i - 1.5) * 5;
-  makeTower(x, -30, 3 + i*1.2, e.color, e.company, {
-    type: 'experience', data: e, speech: e.speech
+  canvas.addEventListener('pointerdown', function (e) {
+    orb.down      = true;
+    orb.lmx       = e.clientX;
+    orb.lmy       = e.clientY;
+    orb.dragStartX = e.clientX;
+    orb.dragStartY = e.clientY;
+    orb.isDragging = false;
   });
-});
-makeDataStream(new T.Vector3(0,2,0), new T.Vector3(0,2,-30), 0xffaa00);
+  canvas.addEventListener('pointerup', function () { orb.down = false; });
+  canvas.addEventListener('pointermove', function (e) {
+    if (!orb.down) return;
+    var dx = e.clientX - orb.lmx;
+    var dy = e.clientY - orb.lmy;
+    if (Math.abs(e.clientX - orb.dragStartX) > 4 || Math.abs(e.clientY - orb.dragStartY) > 4) {
+      orb.isDragging = true;
+    }
+    orb.theta -= dx * 0.006;
+    orb.phi   -= dy * 0.004;
+    orb.phi    = Math.max(0.12, Math.min(Math.PI / 2.05, orb.phi));
+    orb.lmx = e.clientX; orb.lmy = e.clientY;
+  });
+  canvas.addEventListener('wheel', function (e) {
+    orb.r = Math.max(8, Math.min(85, orb.r + e.deltaY * 0.04));
+    e.preventDefault();
+  }, { passive: false });
 
-/* Zone 4: CERTIFICATIONS — island at -25, 0, -30 */
-makeIsland(-25, -30, 5, 0x000a20, 1.2);
-PD.certifications.forEach(function(c, i){
-  var a = (i/PD.certifications.length)*Math.PI*2;
-  var cert = new T.Mesh(
-    new T.OctahedronGeometry(1, 0),
-    matL(c.color, c.color, 0.6)
-  );
-  cert.position.set(-25 + Math.cos(a)*3, 2.5, -30 + Math.sin(a)*3);
-  cert.userData.label = c.title;
-  cert.userData.info  = { type:'cert', data:c, speech:c.speech };
-  clickables.push(cert);
-  floating.push({ mesh:cert, speed:0.7+i*0.15, amp:0.3, phase:i*1.5 });
-  spinners.push({ mesh:cert, axis:'y', speed:0.018+i*0.003 });
-  scene.add(cert);
-});
-makeDataStream(new T.Vector3(0,2,-30), new T.Vector3(-25,2,-30), 0x00aaff);
-
-/* Zone 5: PROJECTS — island at 25, 0, -30 */
-makeIsland(25, -30, 6, 0x1a0500, 1.3);
-PD.projects.forEach(function(p, i){
-  var a = (i/PD.projects.length)*Math.PI*2;
-  makeTower(
-    25 + Math.cos(a)*3.5, -30,
-    4 + i*0.8,
-    p.color, p.title,
-    { type:'project', data:p, speech:p.speech }
-  );
-});
-makeDataStream(new T.Vector3(0,2,-30), new T.Vector3(25,2,-30), 0xff6600);
-
-/* Zone 6: CONTACT — island at 0, 0, -50 */
-makeIsland(0, -50, 5, 0x1a0020, 1.2);
-var contactPortal = makePortal(0, 5, -50, 0xff0088, 3.5, 0.25);
-var contactTower  = makeTower(0, -50, 5, 0xff0088, "Contact Ujas", {
-  type:'contact',
-  speech:"Let's connect! Ujas is open to Data Engineering and Technical Lead roles. Click to send a message."
-});
-makeDataStream(new T.Vector3(0,2,-30), new T.Vector3(0,2,-50), 0xff0088);
-
-/* Ambient floating particles */
-(function buildParticles(){
-  var N = 2000;
-  var pos = new Float32Array(N*3);
-  var col = new Float32Array(N*3);
-  var colors = [[0,1,1],[1,0,1],[0,1,.5]];
-  for (var i=0;i<N;i++){
-    pos[i*3]   = (Math.random()-.5)*160;
-    pos[i*3+1] = Math.random()*25;
-    pos[i*3+2] = (Math.random()-.5)*160;
-    var c = colors[Math.floor(Math.random()*3)];
-    col[i*3]=c[0]; col[i*3+1]=c[1]; col[i*3+2]=c[2];
+  function updateOrbit() {
+    orb.ltheta += (orb.theta - orb.ltheta) * 0.09;
+    orb.lphi   += (orb.phi   - orb.lphi  ) * 0.09;
+    orb.lr     += (orb.r     - orb.lr    ) * 0.09;
+    orb.ltx    += (orb.tx    - orb.ltx   ) * 0.07;
+    orb.lty    += (orb.ty    - orb.lty   ) * 0.07;
+    orb.ltz    += (orb.tz    - orb.ltz   ) * 0.07;
+    camera.position.set(
+      orb.ltx + orb.lr * Math.sin(orb.lphi) * Math.sin(orb.ltheta),
+      orb.lty + orb.lr * Math.cos(orb.lphi),
+      orb.ltz + orb.lr * Math.sin(orb.lphi) * Math.cos(orb.ltheta)
+    );
+    camera.lookAt(orb.ltx, orb.lty, orb.ltz);
   }
-  var g = new T.BufferGeometry();
-  g.setAttribute('position', new T.BufferAttribute(pos,3));
-  g.setAttribute('color', new T.BufferAttribute(col,3));
-  scene.add(new T.Points(g, new T.PointsMaterial({
-    size:.18, vertexColors:true, transparent:true, opacity:.65,
-    blending:T.AdditiveBlending, depthWrite:false
-  })));
-})();
 
-/* ═══════════════════════════════════════════════════════════
-   5. ZONE CAMERA POSITIONS
-═══════════════════════════════════════════════════════════ */
-var zoneCams = [
-  { pos:new T.Vector3(0,18,38),   tgt:new T.Vector3(0,0,0)   },   // home
-  { pos:new T.Vector3(-35,14,-3), tgt:new T.Vector3(-25,2,-10)},  // about
-  { pos:new T.Vector3(38,14,-3),  tgt:new T.Vector3(25,2,-10) },  // skills
-  { pos:new T.Vector3(0,18,-18),  tgt:new T.Vector3(0,2,-30)  },  // experience
-  { pos:new T.Vector3(-34,14,-22),tgt:new T.Vector3(-25,2,-30)},  // certs
-  { pos:new T.Vector3(34,14,-22), tgt:new T.Vector3(25,2,-30) },  // projects
-  { pos:new T.Vector3(0,16,-42),  tgt:new T.Vector3(0,2,-50)  }   // contact
-];
+  /* ═══════════════════════════════════════════════════════════
+     3.  LIGHTS
+  ═══════════════════════════════════════════════════════════ */
+  scene.add(new T.AmbientLight(0x112244, 1.4));
 
-var aidaPositions = [
-  new T.Vector3(0,1.5,8),
-  new T.Vector3(-22,1.5,-8),
-  new T.Vector3(22,1.5,-8),
-  new T.Vector3(0,1.5,-26),
-  new T.Vector3(-22,1.5,-28),
-  new T.Vector3(22,1.5,-28),
-  new T.Vector3(0,1.5,-46)
-];
+  var sun = new T.DirectionalLight(0x88ccff, 1.8);
+  sun.position.set(30, 55, 25);
+  sun.castShadow = true;
+  sun.shadow.mapSize.width  = 2048;
+  sun.shadow.mapSize.height = 2048;
+  sun.shadow.camera.near    = 1;
+  sun.shadow.camera.far     = 220;
+  sun.shadow.camera.left    = -70;
+  sun.shadow.camera.right   =  70;
+  sun.shadow.camera.top     =  70;
+  sun.shadow.camera.bottom  = -70;
+  scene.add(sun);
 
-var currentZone   = 0;
-var camTargetPos  = new T.Vector3().copy(zoneCams[0].pos);
-var camTargetLook = new T.Vector3().copy(zoneCams[0].tgt);
-
-function goToZone(idx) {
-  idx = Math.max(0, Math.min(6, idx));
-  currentZone = idx;
-  var zc = zoneCams[idx];
-  camTargetPos.copy(zc.pos);
-  camTargetLook.copy(zc.tgt);
-  orbit.target.copy(zc.tgt);
-  orbit.spherical.theta = 0;
-
-  /* Update orbit to match */
-  var diff = new T.Vector3().subVectors(zc.pos, zc.tgt);
-  orbit.spherical.r   = diff.length();
-  orbit.spherical.phi = Math.acos(diff.y / orbit.spherical.r);
-
-  /* Move AIDA */
-  AIDA.targetPos.copy(aidaPositions[idx]);
-
-  /* Zone label */
-  var zd = PD.zones[idx];
-  zoneLbl.textContent = zd.label;
-  zoneLbl.style.opacity = '1';
-  setTimeout(function(){ zoneLbl.style.opacity='0'; }, 3200);
-
-  /* AIDA speech */
-  var speeches = [
-    "Welcome! This is the Home zone. I'm AIDA, your guide. Click any glowing object to learn about Ujas!",
-    "This is the About zone. Ujas is an AWS Data Engineer with 8.5 years of experience. Click the tower!",
-    "Welcome to the Skills arena! Each tower represents a technology. Taller tower means higher proficiency!",
-    "Experience zone! Four towers, four companies. Click each one to read Ujas's career story.",
-    "Certifications! These spinning gems represent Ujas's certifications. Click each one!",
-    "Projects zone! Three projects built by Ujas. Each tower holds a different data engineering story.",
-    "Contact zone! This warp gate connects you directly to Ujas. Click the tower to send a message!"
+  var atmoLights = [
+    [0x00ffff,  0, 10,   0,  45],
+    [0xff00ff, -30,  8, -18, 38],
+    [0x00ff88,  30,  8,  18, 38]
   ];
-  aidaSpeak(speeches[idx]);
-
-  /* Update nav active state */
-  qsa('.znav').forEach(function(b, i){ b.classList.toggle('active', i===idx); });
-}
-
-/* ═══════════════════════════════════════════════════════════
-   6. WEB SPEECH API
-═══════════════════════════════════════════════════════════ */
-var synth = window.speechSynthesis || null;
-var selVoice = null;
-var isSpeaking = false;
-
-function loadVoice() {
-  if (!synth) return;
-  var v = synth.getVoices();
-  selVoice =
-    v.find(function(x){ return x.name.includes('Google US English'); }) ||
-    v.find(function(x){ return x.lang==='en-US' && !x.localService; }) ||
-    v.find(function(x){ return x.lang && x.lang.startsWith('en'); }) ||
-    v[0] || null;
-}
-loadVoice();
-if (synth && synth.onvoiceschanged !== undefined) synth.onvoiceschanged = loadVoice;
-
-function aidaSpeak(text) {
-  if (!text) return;
-  /* Update HUD bubble */
-  aidaMsg.textContent = '';
-  var i = 0;
-  (function t(){ if(i<text.length){ aidaMsg.textContent+=text[i++]; setTimeout(t,16); } })();
-
-  if (!synth) return;
-  synth.cancel();
-  loadVoice();
-  var utt    = new SpeechSynthesisUtterance(text);
-  utt.lang   = 'en-US';
-  utt.rate   = 0.88;
-  utt.pitch  = 1.08;
-  utt.volume = 1;
-  if (selVoice) utt.voice = selVoice;
-  utt.onstart = function(){ isSpeaking=true; aidaMouth.classList.add('talking'); };
-  utt.onend   = function(){ isSpeaking=false; aidaMouth.classList.remove('talking'); };
-  synth.speak(utt);
-}
-
-/* AIDA repeat / skip */
-qs('#aida-repeat').addEventListener('click', function(){
-  aidaSpeak(aidaMsg.textContent);
-});
-qs('#aida-skip').addEventListener('click', function(){
-  if (synth) synth.cancel();
-  isSpeaking = false;
-  aidaMouth.classList.remove('talking');
-});
-
-/* ═══════════════════════════════════════════════════════════
-   7. WEB AUDIO — ambient music (starts on first user click)
-═══════════════════════════════════════════════════════════ */
-var audioCtx   = null;
-var musicNodes = [];
-var musicOn    = false;
-
-function initAudio() {
-  if (audioCtx) return;
-  try { audioCtx = new (window.AudioContext||window.webkitAudioContext)(); } catch(e){ return; }
-}
-
-function startMusic() {
-  initAudio();
-  if (!audioCtx || musicOn) return;
-
-  var master = audioCtx.createGain();
-  master.gain.setValueAtTime(0.06, audioCtx.currentTime);
-  master.connect(audioCtx.destination);
-
-  /* Reverb */
-  var conv = audioCtx.createConvolver();
-  var len  = audioCtx.sampleRate * 3;
-  var buf  = audioCtx.createBuffer(2, len, audioCtx.sampleRate);
-  for (var ch=0;ch<2;ch++){
-    var d=buf.getChannelData(ch);
-    for(var i=0;i<len;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/len,2.2);
-  }
-  conv.buffer=buf;
-  conv.connect(master);
-
-  /* Delay echo */
-  var delay=audioCtx.createDelay(1.5);
-  delay.delayTime.setValueAtTime(0.42,audioCtx.currentTime);
-  var dfb=audioCtx.createGain(); dfb.gain.setValueAtTime(0.28,audioCtx.currentTime);
-  delay.connect(dfb); dfb.connect(delay); delay.connect(master);
-
-  /* Sci-fi pentatonic drone */
-  [65.41,98,130.81,164.81,196,261.63,329.63,392].forEach(function(freq,i){
-    var osc=audioCtx.createOscillator();
-    var g=audioCtx.createGain();
-    osc.type = i%2===0?'sine':'triangle';
-    osc.frequency.setValueAtTime(freq,audioCtx.currentTime);
-    osc.detune.setValueAtTime((Math.random()-.5)*6,audioCtx.currentTime);
-    var lfo=audioCtx.createOscillator();
-    var lg=audioCtx.createGain();
-    lfo.frequency.setValueAtTime(0.07+i*.025,audioCtx.currentTime);
-    lg.gain.setValueAtTime(0.03,audioCtx.currentTime);
-    lfo.connect(lg); lg.connect(g.gain); lfo.start();
-    g.gain.setValueAtTime(0.04+Math.random()*.035,audioCtx.currentTime);
-    osc.connect(g); g.connect(conv); g.connect(delay); osc.start();
-    musicNodes.push(osc,lfo,g);
+  atmoLights.forEach(function (l) {
+    var pl = new T.PointLight(l[0], 1.4, l[4]);
+    pl.position.set(l[1], l[2], l[3]);
+    scene.add(pl);
   });
-  musicNodes.push(master,conv,delay,dfb);
-  musicOn=true;
-  btnMusic.textContent='🔊 Music';
-  btnMusic.classList.add('on');
-}
 
-function stopMusic() {
-  if (!musicOn) return;
-  musicNodes.forEach(function(n){ try{n.stop&&n.stop();}catch(e){} });
-  try{ if(musicNodes[musicNodes.length-4]) musicNodes[musicNodes.length-4].gain.setValueAtTime(0,audioCtx.currentTime); }catch(e){}
-  musicNodes=[];
-  musicOn=false;
-  btnMusic.textContent='🎵 Music';
-  btnMusic.classList.remove('on');
-}
-
-btnMusic.addEventListener('click', function(){
-  if (musicOn) stopMusic(); else startMusic();
-});
-
-/* ═══════════════════════════════════════════════════════════
-   8. AI NEWS — fetch from free RSS-to-JSON API
-═══════════════════════════════════════════════════════════ */
-btnNews.addEventListener('click', function(){
-  aidaSpeak("Fetching latest AI and tech news for you...");
-  /* Use rss2json.com free tier — converts any RSS to JSON */
-  var rssUrl = encodeURIComponent('https://feeds.feedburner.com/TechCrunch');
-  var apiUrl = 'https://api.rss2json.com/v1/api.json?rss_url=' + rssUrl + '&count=3';
-  fetch(apiUrl)
-    .then(function(r){ return r.json(); })
-    .then(function(data){
-      if (data && data.items && data.items.length) {
-        var titles = data.items.slice(0,3).map(function(item,i){
-          return (i+1) + '. ' + item.title;
-        }).join('. ');
-        aidaSpeak("Here are today's top tech headlines: " + titles);
-        showInfo({
-          type:'news',
-          title:'📰 Latest Tech News (via TechCrunch)',
-          items: data.items.slice(0,5).map(function(it){ return it.title; })
-        });
-      } else {
-        aidaSpeak("I couldn't fetch news right now. Check your internet connection.");
-      }
-    })
-    .catch(function(){
-      /* Fallback to hardcoded relevant AI/data news snippets */
-      var fallbacks = [
-        "AWS announces new Redshift Serverless pricing improvements for 2026.",
-        "PySpark 4.0 brings major performance improvements for large scale data.",
-        "Apache Airflow 3.0 released with improved DAG authoring experience.",
-        "Databricks Unity Catalog now generally available across all cloud providers.",
-        "GitHub Copilot gains new features for data engineering workflows."
-      ];
-      aidaSpeak("Here are some recent highlights in the data engineering world: " + fallbacks.slice(0,3).join('. '));
-      showInfo({ type:'news', title:'📰 Data Engineering Headlines', items: fallbacks });
+  /* ═══════════════════════════════════════════════════════════
+     4.  GEOMETRY HELPERS
+  ═══════════════════════════════════════════════════════════ */
+  function toonMat(col) {
+    return new T.MeshToonMaterial({ color: col });
+  }
+  function emissiveMat(col, intensity) {
+    return new T.MeshStandardMaterial({
+      color: col,
+      emissive: col,
+      emissiveIntensity: intensity !== undefined ? intensity : 0.35,
+      roughness: 0.75,
+      metalness: 0.1
     });
-});
-
-/* ═══════════════════════════════════════════════════════════
-   9. RAYCASTER — click 3D objects
-═══════════════════════════════════════════════════════════ */
-var raycaster = new T.Raycaster();
-var mouse2d   = new T.Vector2();
-
-canvas.addEventListener('click', function(e){
-  /* Ignore if it was a drag */
-  if (Math.abs(e.clientX - orbit.lx) > 5 || Math.abs(e.clientY - orbit.ly) > 5) return;
-
-  mouse2d.x =  (e.clientX / innerWidth)  * 2 - 1;
-  mouse2d.y = -(e.clientY / innerHeight) * 2 + 1;
-
-  raycaster.setFromCamera(mouse2d, camera);
-  var hits = raycaster.intersectObjects(clickables, true);
-  if (!hits.length) return;
-
-  var obj = hits[0].object;
-  /* Walk up to find the root with userData */
-  var root = obj;
-  while (root && !root.userData.info && root.parent) root = root.parent;
-  var info = root.userData.info || obj.userData.info;
-  if (!info) return;
-
-  /* Pulse the object */
-  if (obj.material && obj.material.emissiveIntensity !== undefined) {
-    var origEI = obj.material.emissiveIntensity;
-    obj.material.emissiveIntensity = 3;
-    setTimeout(function(){ if(obj.material) obj.material.emissiveIntensity = origEI; }, 400);
   }
 
-  if (info.type === 'contact') {
-    contactMod.classList.remove('hidden');
-    aidaSpeak(info.speech || "Let's connect! Fill in the form to message Ujas.");
-  } else {
-    showInfo(info);
-    if (info.speech) aidaSpeak(info.speech);
-    else if (info.data && info.data.speech) aidaSpeak(info.data.speech);
+  /* Lists for animation loop */
+  var floaters  = [];   /* { mesh, baseY, speed, amp, phase } */
+  var spinnerList = []; /* { mesh, axis, speed } */
+  var streamList  = []; /* { particle, from, to, t, speed } */
+  var clickables  = []; /* meshes responding to raycaster */
+
+  /* ── Floor ── */
+  var floorMesh = new T.Mesh(
+    new T.PlaneGeometry(200, 200),
+    new T.MeshStandardMaterial({ color: 0x020c1e, roughness: 1, metalness: 0 })
+  );
+  floorMesh.rotation.x = -Math.PI / 2;
+  floorMesh.receiveShadow = true;
+  scene.add(floorMesh);
+
+  var grid = new T.GridHelper(200, 42, 0x00ffff, 0x002244);
+  grid.material.opacity     = 0.32;
+  grid.material.transparent = true;
+  grid.position.y           = 0.01;
+  scene.add(grid);
+
+  /* ── Island ── */
+  function makeIsland(x, z, radius, color) {
+    var mesh = new T.Mesh(
+      new T.CylinderGeometry(radius, radius * 1.35, 1.3, 7),
+      toonMat(color || 0x061830)
+    );
+    mesh.position.set(x, -0.35, z);
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    scene.add(mesh);
+
+    var ring = new T.Mesh(
+      new T.TorusGeometry(radius * 1.02, 0.07, 8, 48),
+      emissiveMat(0x00ffff, 0.9)
+    );
+    ring.rotation.x = Math.PI / 2;
+    ring.position.set(x, 0.3, z);
+    scene.add(ring);
   }
-});
 
-/* ── Info panel content builder ── */
-function showInfo(info) {
-  var html = '';
-  if (info.type === 'home') {
-    html = '<h2>🚀 ' + info.name + '</h2>' +
-      '<p>' + info.title + '</p>' +
-      '<p style="font-style:italic;margin-bottom:14px">' + info.tagline + '</p>' +
-      '<div class="stat-row">' +
-      info.stats.map(function(s){
-        return '<div class="stat-chip"><span class="v">' + s.v + '</span><span class="l">' + s.l + '</span></div>';
-      }).join('') + '</div>';
-  } else if (info.type === 'about') {
-    html = '<h2>👤 About</h2>' +
-      '<p>' + info.name + ' — ' + info.title + '</p>' +
-      '<ul>' + info.points.map(function(p){ return '<li>' + p + '</li>'; }).join('') + '</ul>';
-  } else if (info.type === 'skill') {
-    html = '<h2>⚡ ' + info.name + '</h2>' +
-      '<p>Proficiency: <strong style="color:#00ffff">' + info.level + '%</strong></p>' +
-      '<div style="height:8px;background:rgba(0,255,255,.1);border-radius:999px;overflow:hidden;margin-top:8px">' +
-      '<div style="height:100%;width:' + info.level + '%;background:linear-gradient(to right,#00ffff,#ff00ff);border-radius:999px;transition:width 1s ease"></div></div>';
-  } else if (info.type === 'stat') {
-    html = '<h2>' + info.l + '</h2><p style="font-size:32px;color:#00ffff;font-weight:800">' + info.v + '</p>';
-  } else if (info.type === 'experience') {
-    var e = info.data;
-    html = '<h2>🚀 ' + e.role + '</h2>' +
-      '<p style="color:#00ffff">' + e.company + '</p><p>' + e.period + '</p>' +
-      '<ul style="margin-top:10px">' + e.points.map(function(p){ return '<li>'+p+'</li>'; }).join('') + '</ul>';
-  } else if (info.type === 'cert') {
-    var c = info.data;
-    html = '<h2>🏅 ' + c.title + '</h2><p>' + c.issuer + '</p>';
-  } else if (info.type === 'project') {
-    var p = info.data;
-    html = '<h2>🛠 ' + p.title + '</h2>' +
-      '<p>' + p.client + '</p><p>' + p.desc + '</p>' +
-      '<div class="tags">' + p.tags.map(function(t){ return '<span class="tag">'+t+'</span>'; }).join('') + '</div>';
-  } else if (info.type === 'news') {
-    html = '<h2>' + info.title + '</h2>' +
-      '<ul>' + info.items.map(function(n){ return '<li>' + n + '</li>'; }).join('') + '</ul>';
+  /* ── Tower ── */
+  function makeTower(x, z, height, color, infoData) {
+    var h = height;
+    var mesh = new T.Mesh(
+      new T.BoxGeometry(1.5, h, 1.5),
+      emissiveMat(color, 0.38)
+    );
+    mesh.position.set(x, h / 2, z);
+    mesh.castShadow = true;
+    mesh.userData.info = infoData;
+    mesh.userData.baseEI = 0.38;
+    scene.add(mesh);
+    clickables.push(mesh);
+    floaters.push({ mesh: mesh, baseY: h / 2, speed: 0.55 + Math.random() * 0.4, amp: 0.14, phase: Math.random() * Math.PI * 2 });
+
+    var cap = new T.Mesh(
+      new T.BoxGeometry(1.9, 0.22, 1.9),
+      emissiveMat(color, 0.9)
+    );
+    cap.position.set(x, h + 0.11, z);
+    scene.add(cap);
+
+    var halo = new T.Mesh(
+      new T.TorusGeometry(1.15, 0.055, 6, 32),
+      emissiveMat(color, 1.4)
+    );
+    halo.rotation.x = Math.PI / 2;
+    halo.position.set(x, h * 0.5, z);
+    spinnerList.push({ mesh: halo, axis: 'y', speed: 0.013 });
+    scene.add(halo);
+
+    return mesh;
   }
-  infoCont.innerHTML = html;
-  infoPanel.classList.remove('hidden');
-}
 
-qs('#info-close').addEventListener('click', function(){ infoPanel.classList.add('hidden'); });
+  /* ── Portal ring ── */
+  function makePortal(x, y, z, col, ri, ro) {
+    var mesh = new T.Mesh(
+      new T.TorusGeometry(ri || 2.5, ro || 0.18, 12, 60),
+      emissiveMat(col, 1.6)
+    );
+    mesh.position.set(x, y, z);
+    spinnerList.push({ mesh: mesh, axis: 'y', speed: 0.007 });
+    scene.add(mesh);
 
-/* ═══════════════════════════════════════════════════════════
-   10. NAVIGATION — zone buttons + keyboard
-═══════════════════════════════════════════════════════════ */
-qsa('.znav').forEach(function(b, i){
-  b.addEventListener('click', function(){ goToZone(i); });
-});
+    var disc = new T.Mesh(
+      new T.CircleGeometry(ri || 2.5, 32),
+      new T.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.06, side: T.DoubleSide })
+    );
+    disc.position.set(x, y, z);
+    scene.add(disc);
+  }
 
-window.addEventListener('keydown', function(e){
-  if (e.target && (e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA')) return;
-  if (e.key>='1'&&e.key<='7') goToZone(parseInt(e.key,10)-1);
-  else if (e.key==='ArrowRight'||e.key==='d') goToZone(currentZone+1);
-  else if (e.key==='ArrowLeft' ||e.key==='a') goToZone(currentZone-1);
-  else if (e.key==='Escape') { infoPanel.classList.add('hidden'); contactMod.classList.add('hidden'); }
-});
+  /* ── Data stream ── */
+  function makeStream(fx, fy, fz, tx2, ty2, tz2, col) {
+    var from = new T.Vector3(fx, fy, fz);
+    var to   = new T.Vector3(tx2, ty2, tz2);
 
-/* ═══════════════════════════════════════════════════════════
-   11. CONTACT FORM
-═══════════════════════════════════════════════════════════ */
-qs('#contact-close').addEventListener('click', function(){ contactMod.classList.add('hidden'); });
+    /* Tube */
+    var dir = new T.Vector3().subVectors(to, from);
+    var len = dir.length();
+    var tube = new T.Mesh(
+      new T.CylinderGeometry(0.04, 0.04, len, 5),
+      emissiveMat(col, 0.6)
+    );
+    tube.position.copy(from).addScaledVector(dir.normalize(), len / 2);
+    tube.quaternion.setFromUnitVectors(new T.Vector3(0, 1, 0), dir.normalize());
+    scene.add(tube);
 
-/* Wire form fields from data.js config */
-var gf = qs('#gform');
-if (gf) {
-  gf.action = PD.formAction;
-  var ni=gf.querySelector('input[type=text]');
-  var ei=gf.querySelector('input[type=email]');
-  var mi=gf.querySelector('textarea');
-  if(ni) ni.name=PD.formFields.name;
-  if(ei) ei.name=PD.formFields.email;
-  if(mi) mi.name=PD.formFields.message;
-}
+    /* Moving particle */
+    var p = new T.Mesh(
+      new T.SphereGeometry(0.13, 6, 6),
+      emissiveMat(col, 3.0)
+    );
+    scene.add(p);
+    streamList.push({ particle: p, from: from.clone(), to: to.clone(), t: Math.random(), speed: 0.004 + Math.random() * 0.006 });
+  }
 
-gf && gf.addEventListener('submit', function(){
-  setTimeout(function(){
-    qs('#form-ok').style.display='block';
-    aidaSpeak("Message sent! Ujas will reply to you very soon.");
-    showInfo({type:'news',title:'✅ Message Sent!',items:['Ujas will reply within 24 hours.','You can also reach him on LinkedIn.','Email: ujasdubal@gmail.com']});
-    gf.reset();
-  }, 600);
-});
+  /* ── Orb ── */
+  function makeOrb(x, y, z, col, infoData) {
+    var mesh = new T.Mesh(
+      new T.SphereGeometry(0.65, 12, 12),
+      emissiveMat(col, 0.6)
+    );
+    mesh.position.set(x, y, z);
+    mesh.userData.info = infoData;
+    mesh.userData.baseEI = 0.6;
+    scene.add(mesh);
+    clickables.push(mesh);
+    floaters.push({ mesh: mesh, baseY: y, speed: 0.6 + Math.random() * 0.4, amp: 0.22, phase: Math.random() * Math.PI * 2 });
+    return mesh;
+  }
 
-/* ═══════════════════════════════════════════════════════════
-   12. START OVERLAY — enters on first click (fixes audio autoplay)
-═══════════════════════════════════════════════════════════ */
-qs('#start-btn').addEventListener('click', function(){
-  startMusic();
-  startOvl.classList.add('gone');
-  setTimeout(function(){ startOvl.style.display='none'; }, 700);
-  goToZone(0);
-  aidaSpeak("Welcome to Ujas's Data World! I'm AIDA. Click any glowing object to explore. Press numbers 1 through 7 to jump between zones!");
-});
+  /* ── Gem (octahedron) ── */
+  function makeGem(x, y, z, col, infoData) {
+    var mesh = new T.Mesh(
+      new T.OctahedronGeometry(0.9, 0),
+      emissiveMat(col, 0.65)
+    );
+    mesh.position.set(x, y, z);
+    mesh.userData.info = infoData;
+    mesh.userData.baseEI = 0.65;
+    scene.add(mesh);
+    clickables.push(mesh);
+    floaters.push({ mesh: mesh, baseY: y, speed: 0.7 + Math.random() * 0.4, amp: 0.28, phase: Math.random() * Math.PI * 2 });
+    spinnerList.push({ mesh: mesh, axis: 'y', speed: 0.016 + Math.random() * 0.006 });
+    return mesh;
+  }
 
-/* ═══════════════════════════════════════════════════════════
-   13. MAIN RENDER LOOP
-═══════════════════════════════════════════════════════════ */
-var clock  = new T.Clock();
-var camPos = new T.Vector3().copy(camera.position);
+  /* ── Ambient particles ── */
+  (function () {
+    var N   = 1800;
+    var pos = new Float32Array(N * 3);
+    var col = new Float32Array(N * 3);
+    var palette = [[0,1,1],[1,0,1],[0,1,.53]];
+    for (var i = 0; i < N; i++) {
+      pos[i*3]   = (Math.random() - .5) * 160;
+      pos[i*3+1] = Math.random() * 28;
+      pos[i*3+2] = (Math.random() - .5) * 160;
+      var c = palette[Math.floor(Math.random() * 3)];
+      col[i*3] = c[0]; col[i*3+1] = c[1]; col[i*3+2] = c[2];
+    }
+    var g = new T.BufferGeometry();
+    g.setAttribute('position', new T.BufferAttribute(pos, 3));
+    g.setAttribute('color',    new T.BufferAttribute(col, 3));
+    scene.add(new T.Points(g, new T.PointsMaterial({
+      size: 0.17, vertexColors: true, transparent: true,
+      opacity: 0.6, blending: T.AdditiveBlending, depthWrite: false
+    })));
+  }());
 
-(function loop() {
-  requestAnimationFrame(loop);
-  var t = clock.getElapsedTime();
-  var dt = clock.getDelta ? 0.016 : 0.016;
+  /* ═══════════════════════════════════════════════════════════
+     5.  AIDA ROBOT CHARACTER  (procedural geometry, no files)
+  ═══════════════════════════════════════════════════════════ */
+  var AIDA = (function buildAIDA() {
+    var g = new T.Group();
 
-  /* Floating objects */
-  floating.forEach(function(f){
-    f.mesh.position.y = f.mesh.userData.baseY + Math.sin(t * f.speed + f.phase) * f.amp;
+    /* Body */
+    var body = new T.Mesh(
+      new T.BoxGeometry(1.25, 1.5, 0.85),
+      emissiveMat(0x0a2a5a, 0.28)
+    );
+    body.castShadow = true;
+    g.add(body);
+
+    /* Chest screen */
+    var screen = new T.Mesh(
+      new T.BoxGeometry(0.72, 0.52, 0.06),
+      emissiveMat(0x001133, 1.3)
+    );
+    screen.position.set(0, 0.12, 0.45);
+    g.add(screen);
+
+    /* Head */
+    var head = new T.Mesh(
+      new T.BoxGeometry(0.95, 0.88, 0.82),
+      emissiveMat(0x0d2b55, 0.26)
+    );
+    head.position.set(0, 1.18, 0);
+    head.castShadow = true;
+    g.add(head);
+
+    /* Eyes */
+    var eyePositions = [[-0.22, 1.24, 0.43], [0.22, 1.24, 0.43]];
+    eyePositions.forEach(function (ep) {
+      var eye = new T.Mesh(
+        new T.SphereGeometry(0.11, 8, 8),
+        new T.MeshBasicMaterial({ color: 0x00ffff })
+      );
+      eye.position.set(ep[0], ep[1], ep[2]);
+      g.add(eye);
+      var eLight = new T.PointLight(0x00ffff, 0.9, 2.8);
+      eLight.position.set(ep[0], ep[1], ep[2]);
+      g.add(eLight);
+    });
+
+    /* Antenna */
+    var ant = new T.Mesh(
+      new T.CylinderGeometry(0.04, 0.04, 0.62, 6),
+      emissiveMat(0x00ffff, 1.1)
+    );
+    ant.position.set(0, 1.93, 0);
+    g.add(ant);
+
+    var antBall = new T.Mesh(
+      new T.SphereGeometry(0.13, 8, 8),
+      new T.MeshBasicMaterial({ color: 0x00ffff })
+    );
+    antBall.position.set(0, 2.27, 0);
+    g.add(antBall);
+
+    var antLight = new T.PointLight(0x00ffff, 1.8, 4.5);
+    antLight.position.set(0, 2.26, 0);
+    g.add(antLight);
+
+    /* Arms */
+    [[-0.74, 0.18, 0], [0.74, 0.18, 0]].forEach(function (ap, ai) {
+      var arm = new T.Mesh(
+        new T.CylinderGeometry(0.15, 0.12, 0.92, 6),
+        emissiveMat(0x0a2a5a, 0.2)
+      );
+      arm.position.set(ap[0], ap[1], ap[2]);
+      arm.rotation.z = (ai === 0 ? 1 : -1) * 0.28;
+      arm.castShadow = true;
+      g.add(arm);
+    });
+
+    /* Legs */
+    [[-0.3, -0.94, 0], [0.3, -0.94, 0]].forEach(function (lp) {
+      var leg = new T.Mesh(
+        new T.CylinderGeometry(0.18, 0.14, 0.88, 6),
+        emissiveMat(0x061428, 0.15)
+      );
+      leg.position.set(lp[0], lp[1], lp[2]);
+      leg.castShadow = true;
+      g.add(leg);
+    });
+
+    g.scale.setScalar(0.72);
+    g.position.set(0, 1.5, 9);
+    scene.add(g);
+
+    return {
+      group:    g,
+      head:     head,
+      screen:   screen,
+      antLight: antLight,
+      targetPos: new T.Vector3(0, 1.5, 9)
+    };
+  }());
+
+  /* ═══════════════════════════════════════════════════════════
+     6.  BUILD THE 3D WORLD  (7 zones)
+  ═══════════════════════════════════════════════════════════ */
+
+  /* ── ZONE 0: HOME ── */
+  makeIsland(0, 0, 7, 0x061830);
+  makePortal(0, 5.5, 0, 0x00ffff, 3.2, 0.22);
+  makePortal(0, 5.5, 0, 0xff00ff, 4.8, 0.12);
+
+  /* Hero orb */
+  makeOrb(0, 7.5, 0, 0x00ffff, {
+    type: 'home',
+    title: PD.name,
+    lines: [PD.title, PD.tagline],
+    stats: PD.stats,
+    speech: 'Welcome! I am Ujas Dubal, AWS Data Engineer and Technical Lead with 8.5 years of experience turning billions of records into real time insights.'
   });
 
-  /* Spinners */
-  spinners.forEach(function(s){
-    if (s.axis==='y') s.mesh.rotation.y += s.speed;
-    else if (s.axis==='x') s.mesh.rotation.x += s.speed;
+  /* Stats orbs */
+  PD.stats.forEach(function (s, i) {
+    var a = (i / PD.stats.length) * Math.PI * 2;
+    makeOrb(
+      Math.cos(a) * 5.5, 2.8 + Math.sin(i) * 0.4, Math.sin(a) * 5.5,
+      0x00ffff,
+      { type: 'stat', v: s.v, l: s.l, speech: s.v + ' ' + s.l }
+    );
   });
 
-  /* Data stream particles */
-  dataStreams.forEach(function(ds){
-    ds.t += ds.speed;
-    if (ds.t >= 1) ds.t -= 1;
-    ds.particle.position.lerpVectors(ds.from, ds.to, ds.t);
-    /* Slight bob */
-    ds.particle.position.y += Math.sin(t * 2 + ds.t * 10) * 0.15;
+  /* Streams from home to other zones */
+  makeStream(0,2,0,   -26,2,-10, 0x00ff88);
+  makeStream(0,2,0,    26,2,-10, 0xff00ff);
+  makeStream(0,2,-10,   0,2,-30, 0xffaa00);
+  makeStream(0,2,-30, -26,2,-30, 0x00aaff);
+  makeStream(0,2,-30,  26,2,-30, 0xff6600);
+  makeStream(0,2,-30,   0,2,-50, 0xff0088);
+
+  /* ── ZONE 1: ABOUT ── */
+  makeIsland(-26, -10, 5.5, 0x0a1f0a);
+  makeTower(-26, -10, 4.5, 0x00ff88, {
+    type: 'about',
+    title: '👤 About Ujas',
+    lines: [PD.title, PD.location],
+    points: [
+      '8.5+ years IT · 5+ years Data Engineering',
+      'Technical Lead · 1.5+ years leadership',
+      'M.Sc IT – GLS University 2019',
+      'B.E. Electronics – GTU 2015',
+      'TCS On-the-Spot Award 2023 · CoA 2024'
+    ],
+    speech: 'I am Ujas Dubal, AWS Data Engineer from Ahmedabad India. I architect cloud native data platforms that handle billions of records on AWS.'
   });
 
-  /* AIDA movement — smooth walk toward target */
-  AIDA.group.position.lerp(AIDA.targetPos, 0.03);
-  /* AIDA bobs */
-  AIDA.group.position.y = AIDA.targetPos.y + Math.sin(t * 1.8) * 0.18;
-  /* AIDA faces direction of movement */
-  var aidaDx = AIDA.targetPos.x - AIDA.group.position.x;
-  var aidaDz = AIDA.targetPos.z - AIDA.group.position.z;
-  if (Math.abs(aidaDx)+Math.abs(aidaDz) > 0.1) {
-    AIDA.group.rotation.y = Math.atan2(aidaDx, aidaDz);
+  /* ── ZONE 2: SKILLS ── */
+  makeIsland(26, -10, 6.5, 0x1a0a2a);
+  PD.skills.forEach(function (sk, i) {
+    var a = (i / PD.skills.length) * Math.PI * 2;
+    var r = 3.4 + (i % 2) * 1.2;
+    makeTower(
+      26 + Math.cos(a) * r, -10,
+      1.4 + sk.pct / 28,
+      sk.col,
+      {
+        type: 'skill',
+        title: '⚡ ' + sk.name,
+        pct: sk.pct,
+        speech: sk.name + ' — ' + sk.pct + ' percent proficiency. ' + (sk.pct >= 90 ? 'Expert level.' : 'Advanced level.')
+      }
+    );
+  });
+
+  /* ── ZONE 3: EXPERIENCE ── */
+  makeIsland(0, -30, 8.5, 0x1a0f00);
+  PD.experience.forEach(function (e, i) {
+    var x = (i - 1.5) * 5.5;
+    makeTower(x, -30, 3 + i * 1.3, e.col, {
+      type: 'exp',
+      title: '🚀 ' + e.role,
+      lines: [e.company, e.period],
+      points: e.points,
+      speech: e.speech
+    });
+  });
+
+  /* ── ZONE 4: CERTIFICATIONS ── */
+  makeIsland(-26, -30, 5.5, 0x000a22);
+  PD.certifications.forEach(function (c, i) {
+    var a = (i / PD.certifications.length) * Math.PI * 2;
+    makeGem(
+      -26 + Math.cos(a) * 3.2, 2.8, -30 + Math.sin(a) * 3.2,
+      c.col,
+      { type: 'cert', title: '🏅 ' + c.title, lines: [c.issuer], speech: c.speech }
+    );
+  });
+
+  /* ── ZONE 5: PROJECTS ── */
+  makeIsland(26, -30, 6, 0x1a0500);
+  PD.projects.forEach(function (p, i) {
+    var a = (i / PD.projects.length) * Math.PI * 2;
+    makeTower(
+      26 + Math.cos(a) * 3.8, -30,
+      4.2 + i * 0.9,
+      p.col,
+      { type: 'project', title: '🛠 ' + p.title, lines: [p.client, p.desc], tags: p.tags, speech: p.speech }
+    );
+  });
+
+  /* ── ZONE 6: CONTACT ── */
+  makeIsland(0, -50, 5.5, 0x1a0020);
+  makePortal(0, 5.5, -50, 0xff0088, 3.5, 0.24);
+  makeTower(0, -50, 5.5, 0xff0088, {
+    type: 'contact',
+    title: '📬 Contact Ujas',
+    speech: "Let's connect! Ujas is open to Data Engineering and Technical Lead roles. Click to send a message."
+  });
+
+  /* ═══════════════════════════════════════════════════════════
+     7.  ZONE CAMERA + AIDA POSITIONS
+  ═══════════════════════════════════════════════════════════ */
+  var zoneData = [
+    { cx: 0,   cy: 20, cz: 42,  lx: 0,   ly: 0,  lz: 0,   ax: 0,   az: 9,   label: '🏠 Home · Launch Pad' },
+    { cx: -37, cy: 15, cz: -2,  lx: -26, ly: 2,  lz: -10, ax: -22, az: -8,  label: '👤 About · Personal Core' },
+    { cx:  40, cy: 15, cz: -2,  lx:  26, ly: 2,  lz: -10, ax:  22, az: -8,  label: '⚡ Skills · Tech Arsenal' },
+    { cx:  0,  cy: 20, cz: -18, lx:  0,  ly: 2,  lz: -30, ax:  0,  az: -26, label: '🚀 Experience · Career' },
+    { cx: -36, cy: 15, cz: -22, lx: -26, ly: 2,  lz: -30, ax: -22, az: -28, label: '🏅 Certs · Badges' },
+    { cx:  36, cy: 15, cz: -22, lx:  26, ly: 2,  lz: -30, ax:  22, az: -28, label: '🛠 Projects · Data City' },
+    { cx:  0,  cy: 18, cz: -42, lx:  0,  ly: 2,  lz: -50, ax:  0,  az: -46, label: '📬 Contact · Warp Gate' }
+  ];
+
+  var zoneSpeeches = [
+    "Welcome to Ujas's Data World! I'm AIDA, your AI Data guide. Click any glowing object to learn about Ujas. Press 1 to 7 to jump between zones!",
+    "This is the About zone. Ujas is an AWS Data Engineer with 8.5 years of experience. Click the glowing tower to learn more!",
+    "Welcome to the Skills arena! Each tower represents a technology. Taller tower means higher proficiency. Click any tower!",
+    "This is the Experience zone! Four towers, four companies. Click each one to hear Ujas's career story.",
+    "Certifications zone! These spinning gems are Ujas's certifications. Click each one to hear about it!",
+    "Projects zone! Three data engineering projects built by Ujas. Click each tower for details.",
+    "Contact zone! This is the warp gate to Ujas. Click the tower to open the contact form and send a message directly!"
+  ];
+
+  var currentZone = -1;
+
+  function setZone(idx) {
+    if (idx === currentZone) return;
+    idx = Math.max(0, Math.min(6, idx));
+    currentZone = idx;
+
+    var zd = zoneData[idx];
+    orb.tx = zd.lx; orb.ty = zd.ly; orb.tz = zd.lz;
+
+    /* Compute spherical coords from camera position relative to target */
+    var dx = zd.cx - zd.lx, dy = zd.cy - zd.ly, dz = zd.cz - zd.lz;
+    orb.r     = Math.sqrt(dx*dx + dy*dy + dz*dz);
+    orb.phi   = Math.acos(Math.max(-1, Math.min(1, dy / orb.r)));
+    orb.theta = Math.atan2(dx, dz);
+
+    /* Move AIDA */
+    AIDA.targetPos.set(zd.ax, 1.5, zd.az);
+
+    /* Zone label */
+    var zlEl = el('zone-lbl');
+    if (zlEl) {
+      zlEl.textContent = zd.label;
+      zlEl.style.opacity = '1';
+      setTimeout(function () { zlEl.style.opacity = '0'; }, 3000);
+    }
+
+    /* Nav highlight */
+    qsa('.znav').forEach(function (b, i) {
+      b.classList.toggle('active', i === idx);
+    });
+
+    /* AIDA speaks */
+    aidaSay(zoneSpeeches[idx]);
   }
-  /* AIDA head gentle look-around */
-  AIDA.head.rotation.y = Math.sin(t * 0.5) * 0.3;
-  /* AIDA antenna pulse */
-  AIDA.antLight.intensity = 1.2 + Math.sin(t * 3) * 0.5;
-  /* AIDA speaking: chest screen pulses */
-  if (isSpeaking) {
-    AIDA.screen.material.emissiveIntensity = 0.8 + Math.sin(t * 18) * 0.7;
-  } else {
-    AIDA.screen.material.emissiveIntensity = 0.3;
+
+  /* ═══════════════════════════════════════════════════════════
+     8.  WEB SPEECH API (TTS)
+  ═══════════════════════════════════════════════════════════ */
+  var synth    = window.speechSynthesis || null;
+  var selVoice = null;
+  var speaking = false;
+
+  function loadVoice() {
+    if (!synth) return;
+    var voices = synth.getVoices();
+    if (!voices.length) return;
+    selVoice =
+      voices.find(function (v) { return v.name.indexOf('Google US English') !== -1; }) ||
+      voices.find(function (v) { return v.lang === 'en-US' && !v.localService; }) ||
+      voices.find(function (v) { return v.lang && v.lang.indexOf('en') === 0; }) ||
+      voices[0] || null;
+  }
+  loadVoice();
+  if (synth && synth.onvoiceschanged !== undefined) {
+    synth.onvoiceschanged = loadVoice;
   }
 
-  /* Camera smooth lerp to target */
-  camera.position.lerp(camTargetPos, 0.045);
-  orbit.target.lerp(camTargetLook, 0.06);
-  camera.lookAt(orbit.target);
+  function aidaSay(text) {
+    if (!text) return;
 
-  renderer.render(scene, camera);
-})();
+    /* Update HUD bubble via typewriter */
+    var msgEl = el('aida-msg');
+    if (msgEl) {
+      msgEl.textContent = '';
+      var i = 0;
+      (function typeIt() {
+        if (i < text.length) {
+          msgEl.textContent += text[i++];
+          setTimeout(typeIt, 18);
+        }
+      }());
+    }
 
-/* ── Year footer ── */
-var yearEl = qs('#yr');
-if (yearEl) yearEl.textContent = new Date().getFullYear();
+    if (!synth) return;
+    synth.cancel();
+    loadVoice();
 
-})(); // end IIFE
+    var utt     = new SpeechSynthesisUtterance(text);
+    utt.lang    = 'en-US';
+    utt.rate    = 0.88;
+    utt.pitch   = 1.08;
+    utt.volume  = 1;
+    if (selVoice) utt.voice = selVoice;
+
+    var mouth = el('aida-mouth');
+    utt.onstart = function () {
+      speaking = true;
+      if (mouth) mouth.classList.add('talking');
+    };
+    utt.onend = function () {
+      speaking = false;
+      if (mouth) mouth.classList.remove('talking');
+    };
+    utt.onerror = function () {
+      speaking = false;
+      if (mouth) mouth.classList.remove('talking');
+    };
+    synth.speak(utt);
+  }
+
+  var repeatBtn = el('btn-repeat');
+  var skipBtn   = el('btn-skip');
+  var aidaMsgEl = el('aida-msg');
+  if (repeatBtn) repeatBtn.addEventListener('click', function () {
+    if (aidaMsgEl) aidaSay(aidaMsgEl.textContent);
+  });
+  if (skipBtn) skipBtn.addEventListener('click', function () {
+    if (synth) synth.cancel();
+    speaking = false;
+    var mouth = el('aida-mouth');
+    if (mouth) mouth.classList.remove('talking');
+  });
+
+  /* ═══════════════════════════════════════════════════════════
+     9.  WEB AUDIO — generative ambient music
+         Starts only after user gesture (fixes autoplay policy)
+  ═══════════════════════════════════════════════════════════ */
+  var audioCtx   = null;
+  var musicActive = false;
+  var masterGain  = null;
+  var musicOscList = [];
+
+  function buildReverb(ctx) {
+    var conv  = ctx.createConvolver();
+    var len   = ctx.sampleRate * 2.8;
+    var buf   = ctx.createBuffer(2, len, ctx.sampleRate);
+    for (var ch = 0; ch < 2; ch++) {
+      var d = buf.getChannelData(ch);
+      for (var i = 0; i < len; i++) {
+        d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.1);
+      }
+    }
+    conv.buffer = buf;
+    return conv;
+  }
+
+  function startMusic() {
+    if (musicActive) return;
+    try {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    } catch (err) {
+      return;
+    }
+
+    masterGain = audioCtx.createGain();
+    masterGain.gain.setValueAtTime(0.065, audioCtx.currentTime);
+    masterGain.connect(audioCtx.destination);
+
+    var reverb = buildReverb(audioCtx);
+    reverb.connect(masterGain);
+
+    var delay = audioCtx.createDelay(1.5);
+    delay.delayTime.setValueAtTime(0.4, audioCtx.currentTime);
+    var dfb = audioCtx.createGain();
+    dfb.gain.setValueAtTime(0.28, audioCtx.currentTime);
+    delay.connect(dfb);
+    dfb.connect(delay);
+    delay.connect(masterGain);
+
+    var freqs = [65.41, 98.0, 130.81, 164.81, 196.0, 261.63, 329.63, 392.0];
+    var types = ['sine','triangle','sine','triangle','sine','triangle','sine','sine'];
+
+    freqs.forEach(function (freq, i) {
+      var osc = audioCtx.createOscillator();
+      var gn  = audioCtx.createGain();
+      osc.type = types[i];
+      osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+      osc.detune.setValueAtTime((Math.random() - 0.5) * 7, audioCtx.currentTime);
+
+      var lfo  = audioCtx.createOscillator();
+      var lfog = audioCtx.createGain();
+      lfo.frequency.setValueAtTime(0.07 + i * 0.022, audioCtx.currentTime);
+      lfog.gain.setValueAtTime(0.028, audioCtx.currentTime);
+      lfo.connect(lfog);
+      lfog.connect(gn.gain);
+      lfo.start();
+
+      gn.gain.setValueAtTime(0.042 + Math.random() * 0.032, audioCtx.currentTime);
+      osc.connect(gn);
+      gn.connect(reverb);
+      gn.connect(delay);
+      osc.start();
+
+      musicOscList.push(osc, lfo);
+    });
+
+    musicActive = true;
+    var bm = el('btn-music');
+    if (bm) { bm.textContent = '🔊 Music'; bm.classList.add('on'); }
+  }
+
+  function stopMusic() {
+    if (!musicActive) return;
+    if (masterGain) {
+      masterGain.gain.setValueAtTime(0, audioCtx.currentTime);
+    }
+    musicOscList.forEach(function (n) { try { n.stop(); } catch (e) {} });
+    musicOscList = [];
+    masterGain   = null;
+    musicActive  = false;
+    var bm = el('btn-music');
+    if (bm) { bm.textContent = '🎵 Music'; bm.classList.remove('on'); }
+  }
+
+  var musicBtn = el('btn-music');
+  if (musicBtn) {
+    musicBtn.addEventListener('click', function () {
+      if (musicActive) stopMusic(); else startMusic();
+    });
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     10. AI NEWS (free RSS-to-JSON, no API key needed)
+  ═══════════════════════════════════════════════════════════ */
+  var newsBtn = el('btn-news');
+  if (newsBtn) {
+    newsBtn.addEventListener('click', function () {
+      aidaSay("Fetching the latest tech and AI news for you. One moment...");
+      var rssUrl = 'https://feeds.feedburner.com/TechCrunch';
+      var apiUrl = 'https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(rssUrl) + '&count=5';
+      fetch(apiUrl)
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          if (data && data.items && data.items.length) {
+            var items = data.items.slice(0, 5);
+            var titles = items.slice(0, 3).map(function (it, i) {
+              return (i + 1) + '. ' + it.title;
+            }).join('. ');
+            aidaSay('Today\'s top tech headlines: ' + titles);
+            showPanel({
+              type: 'news',
+              title: '📰 Latest Tech News',
+              points: items.map(function (it) { return it.title; })
+            });
+          } else {
+            aidaSay("Couldn't load live news right now. Here's what's trending in data engineering.");
+            showNewsPlaceholder();
+          }
+        })
+        .catch(function () {
+          showNewsPlaceholder();
+          aidaSay("No live news available, but here are highlights from the data world.");
+        });
+    });
+  }
+
+  function showNewsPlaceholder() {
+    showPanel({
+      type: 'news',
+      title: '📰 Data Engineering Headlines',
+      points: [
+        'AWS Redshift Serverless continues to reduce cost per query.',
+        'PySpark 4.0 brings major performance improvements.',
+        'Apache Airflow 3.0 released with improved DAG authoring.',
+        'Databricks Unity Catalog now GA across all cloud providers.',
+        'GitHub Copilot gains data engineering workflow support.'
+      ]
+    });
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     11. INFO PANEL BUILDER
+  ═══════════════════════════════════════════════════════════ */
+  function showPanel(info) {
+    var body = el('info-body');
+    if (!body) return;
+    var html = '';
+
+    if (info.type === 'home') {
+      html = '<h2>' + info.title + '</h2>';
+      info.lines.forEach(function (l) { html += '<p>' + l + '</p>'; });
+      html += '<div class="stat-grid">';
+      info.stats.forEach(function (s) {
+        html += '<div class="stat-chip"><span class="sv">' + s.v + '</span><span class="sl">' + s.l + '</span></div>';
+      });
+      html += '</div>';
+
+    } else if (info.type === 'stat') {
+      html = '<h2>' + info.l + '</h2><p style="font-size:36px;font-weight:900;color:#00ffff">' + info.v + '</p>';
+
+    } else if (info.type === 'about') {
+      html = '<h2>' + info.title + '</h2>';
+      info.lines.forEach(function (l) { html += '<p>' + l + '</p>'; });
+      if (info.points) {
+        html += '<ul>';
+        info.points.forEach(function (p) { html += '<li>' + p + '</li>'; });
+        html += '</ul>';
+      }
+
+    } else if (info.type === 'skill') {
+      html = '<h2>' + info.title + '</h2>' +
+        '<p>Proficiency: <strong style="color:#00ffff;font-size:18px">' + info.pct + '%</strong></p>' +
+        '<div class="bar-wrap"><div class="bar-fill" id="bfill" style="width:0%"></div></div>';
+      setTimeout(function () {
+        var bf = el('bfill');
+        if (bf) bf.style.width = info.pct + '%';
+      }, 80);
+
+    } else if (info.type === 'exp') {
+      html = '<h2>' + info.title + '</h2>';
+      info.lines.forEach(function (l) { html += '<p style="color:#00ffff">' + l + '</p>'; });
+      html += '<ul>';
+      info.points.forEach(function (p) { html += '<li>' + p + '</li>'; });
+      html += '</ul>';
+
+    } else if (info.type === 'cert') {
+      html = '<h2>' + info.title + '</h2>';
+      info.lines.forEach(function (l) { html += '<p>' + l + '</p>'; });
+
+    } else if (info.type === 'project') {
+      html = '<h2>' + info.title + '</h2>';
+      info.lines.forEach(function (l) { html += '<p>' + l + '</p>'; });
+      if (info.tags) {
+        html += '<div class="tag-row">';
+        info.tags.forEach(function (t) { html += '<span class="tag">' + t + '</span>'; });
+        html += '</div>';
+      }
+
+    } else if (info.type === 'contact') {
+      html = '<h2>' + info.title + '</h2><p>Use the form to send a direct message to Ujas\'s email.</p>';
+
+    } else if (info.type === 'news') {
+      html = '<h2>' + info.title + '</h2><ul>';
+      info.points.forEach(function (p) { html += '<li>' + p + '</li>'; });
+      html += '</ul>';
+    }
+
+    body.innerHTML = html;
+    var panel = el('info-panel');
+    if (panel) panel.classList.remove('hidden');
+  }
+
+  var infoClose = el('info-close');
+  if (infoClose) {
+    infoClose.addEventListener('click', function () {
+      var panel = el('info-panel');
+      if (panel) panel.classList.add('hidden');
+    });
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     12. RAYCASTER — click 3D objects
+  ═══════════════════════════════════════════════════════════ */
+  var raycaster = new T.Raycaster();
+  var mouse2    = new T.Vector2();
+
+  canvas.addEventListener('click', function (e) {
+    /* Skip if it was a drag gesture */
+    if (orb.isDragging) return;
+
+    mouse2.x =  (e.clientX / window.innerWidth)  * 2 - 1;
+    mouse2.y = -(e.clientY / window.innerHeight) * 2 + 1;
+
+    raycaster.setFromCamera(mouse2, camera);
+    var hits = raycaster.intersectObjects(clickables, false);
+    if (!hits.length) return;
+
+    var hit  = hits[0].object;
+    var info = hit.userData.info;
+    if (!info) return;
+
+    /* Pulse emissive */
+    if (hit.material && hit.material.emissiveIntensity !== undefined) {
+      var orig = hit.userData.baseEI || 0.38;
+      hit.material.emissiveIntensity = 4.0;
+      setTimeout(function () {
+        if (hit.material) hit.material.emissiveIntensity = orig;
+      }, 380);
+    }
+
+    /* Contact zone opens modal */
+    if (info.type === 'contact') {
+      var cm = el('contact-modal');
+      if (cm) cm.classList.remove('hidden');
+      aidaSay(info.speech || "Let's connect! Fill the form to message Ujas.");
+      return;
+    }
+
+    /* Show panel + speak */
+    showPanel(info);
+    if (info.speech) aidaSay(info.speech);
+  });
+
+  /* ═══════════════════════════════════════════════════════════
+     13. CONTACT FORM
+  ═══════════════════════════════════════════════════════════ */
+  var contactClose = el('contact-close');
+  if (contactClose) {
+    contactClose.addEventListener('click', function () {
+      var cm = el('contact-modal');
+      if (cm) cm.classList.add('hidden');
+    });
+  }
+
+  var gform = el('gform');
+  if (gform) {
+    gform.action = PD.formAction;
+    var fName  = el('f-name');
+    var fEmail = el('f-email');
+    var fMsg   = el('f-msg');
+    if (fName)  fName.name  = PD.formName;
+    if (fEmail) fEmail.name = PD.formEmail;
+    if (fMsg)   fMsg.name   = PD.formMsg;
+
+    gform.addEventListener('submit', function () {
+      setTimeout(function () {
+        var ok = el('form-ok');
+        if (ok) ok.textContent = '✅ Sent! Ujas will reply soon.';
+        aidaSay("Message sent! Ujas will reply to you very soon. Thank you!");
+        if (gform) gform.reset();
+      }, 700);
+    });
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     14. KEYBOARD + ZONE NAV BUTTONS
+  ═══════════════════════════════════════════════════════════ */
+  qsa('.znav').forEach(function (b) {
+    b.addEventListener('click', function () {
+      flyToZone(parseInt(b.getAttribute('data-zone'), 10));
+    });
+  });
+
+  window.addEventListener('keydown', function (e) {
+    var tag = e.target && e.target.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+    var k = e.key;
+    if (k >= '1' && k <= '7')       flyToZone(parseInt(k, 10) - 1);
+    else if (k === 'ArrowRight' || k === 'd') flyToZone(currentZone + 1);
+    else if (k === 'ArrowLeft'  || k === 'a') flyToZone(currentZone - 1);
+    else if (k === 'Escape') {
+      var panel = el('info-panel');
+      var cm    = el('contact-modal');
+      if (panel) panel.classList.add('hidden');
+      if (cm)    cm.classList.add('hidden');
+    }
+  });
+
+  /* ═══════════════════════════════════════════════════════════
+     15. START OVERLAY — first click starts audio (autoplay fix)
+  ═══════════════════════════════════════════════════════════ */
+  var startBtn = el('start-btn');
+  if (startBtn) {
+    startBtn.addEventListener('click', function () {
+      /* AudioContext must start inside user gesture */
+      startMusic();
+      var so = el('start-overlay');
+      if (so) {
+        so.classList.add('gone');
+        setTimeout(function () { so.style.display = 'none'; }, 700);
+      }
+      flyToZone(0);
+    });
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     16. MAIN RENDER LOOP
+  ═══════════════════════════════════════════════════════════ */
+  var clock  = new T.Clock();
+  var tmpVec = new T.Vector3();
+
+  (function loop() {
+    requestAnimationFrame(loop);
+    var t = clock.getElapsedTime();
+
+    /* Floating objects */
+    floaters.forEach(function (f) {
+      f.mesh.position.y = f.baseY + Math.sin(t * f.speed + f.phase) * f.amp;
+    });
+
+    /* Spinners */
+    spinnerList.forEach(function (s) {
+      if (s.axis === 'y') s.mesh.rotation.y += s.speed;
+      else if (s.axis === 'x') s.mesh.rotation.x += s.speed;
+    });
+
+    /* Data stream particles */
+    streamList.forEach(function (ds) {
+      ds.t += ds.speed;
+      if (ds.t >= 1.0) ds.t -= 1.0;
+      ds.particle.position.lerpVectors(ds.from, ds.to, ds.t);
+      ds.particle.position.y += Math.sin(t * 2.2 + ds.t * 10) * 0.12;
+    });
+
+    /* AIDA movement + animations */
+    AIDA.group.position.x += (AIDA.targetPos.x - AIDA.group.position.x) * 0.032;
+    AIDA.group.position.z += (AIDA.targetPos.z - AIDA.group.position.z) * 0.032;
+    AIDA.group.position.y  = AIDA.targetPos.y + Math.sin(t * 1.8) * 0.17;
+
+    /* AIDA faces direction of motion */
+    var adx = AIDA.targetPos.x - AIDA.group.position.x;
+    var adz = AIDA.targetPos.z - AIDA.group.position.z;
+    if (Math.abs(adx) + Math.abs(adz) > 0.05) {
+      AIDA.group.rotation.y = Math.atan2(adx, adz);
+    }
+
+    /* AIDA head look-around */
+    AIDA.head.rotation.y = Math.sin(t * 0.48) * 0.28;
+
+    /* Antenna pulse */
+    AIDA.antLight.intensity = 1.5 + Math.sin(t * 3.2) * 0.55;
+
+    /* Chest screen pulses when speaking */
+    AIDA.screen.material.emissiveIntensity = speaking
+      ? 0.7 + Math.sin(t * 16) * 0.65
+      : 0.28;
+
+    /* Orbit camera update */
+    updateOrbit();
+
+    renderer.render(scene, camera);
+  }());
+
+}); /* end window.onload */

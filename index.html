@@ -4,22 +4,28 @@
   <meta charset="UTF-8"/>
   <title>Ujas Dubal | AWS Data Engineer — 3D World</title>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <meta name="description" content="Ujas Dubal – AWS Data Engineer. Interactive 3D cartoon data world portfolio."/>
+  <meta name="description" content="Ujas Dubal – AWS Data Engineer & Technical Lead. Interactive 3D cartoon data world portfolio."/>
+  <meta name="keywords" content="Ujas Dubal, Data Engineer, AWS, Redshift, Glue, PySpark, Ahmedabad, India"/>
+  <meta name="author" content="Ujas Jayeshkumar Dubal"/>
+  <meta property="og:title" content="Ujas Dubal | AWS Data Engineer"/>
+  <meta property="og:type" content="website"/>
+  <meta property="og:url" content="https://ujas-dev.github.io/"/>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>"/>
   <link rel="stylesheet" href="assets/style.css"/>
 </head>
 <body>
 
-  <!-- FULL 3D CANVAS — the entire world lives here -->
+  <!-- Full 3D canvas -->
   <canvas id="world"></canvas>
 
-  <!-- HUD overlay — sits above the 3D world -->
+  <!-- HUD — sits above the 3D world -->
   <div id="hud">
 
     <!-- Top bar -->
     <div id="topbar">
       <div id="tb-left">
-        <img id="ava-img" src="assets/avatar.jpg" alt="Ujas" onerror="this.style.display='none'"/>
+        <img id="ava-img" src="assets/avatar.jpg" alt="Ujas"
+             onerror="this.style.display='none'"/>
         <div>
           <div id="tb-name">Ujas Dubal</div>
           <div id="tb-role">AWS Data Engineer</div>
@@ -29,89 +35,103 @@
         <button class="znav" data-zone="0">🏠 Home</button>
         <button class="znav" data-zone="1">👤 About</button>
         <button class="znav" data-zone="2">⚡ Skills</button>
-        <button class="znav" data-zone="3">🚀 Experience</button>
+        <button class="znav" data-zone="3">🚀 Exp</button>
         <button class="znav" data-zone="4">🏅 Certs</button>
         <button class="znav" data-zone="5">🛠 Projects</button>
         <button class="znav" data-zone="6">📬 Contact</button>
       </nav>
       <div id="tb-right">
-        <button id="btn-music" title="Toggle Music">🎵 Music</button>
-        <button id="btn-news" title="AI News">📰 AI News</button>
+        <button id="btn-music">🎵 Music</button>
+        <button id="btn-news">📰 AI News</button>
       </div>
     </div>
 
     <!-- AIDA speech bubble -->
     <div id="aida-hud">
       <div id="aida-face">
-        <div class="eye" id="eye-l"></div>
-        <div class="eye" id="eye-r"></div>
+        <span class="eye"></span>
+        <span class="eye"></span>
         <div id="aida-mouth"></div>
       </div>
       <div id="aida-bubble">
-        <div id="aida-name">AIDA · AI Data Assistant</div>
-        <div id="aida-msg"></div>
+        <div id="aida-label">AIDA · AI Data Guide</div>
+        <div id="aida-msg">Loading world...</div>
         <div id="aida-btns">
-          <button id="aida-repeat">🔊 Repeat</button>
-          <button id="aida-skip">⏭ Skip</button>
+          <button id="btn-repeat">🔊 Repeat</button>
+          <button id="btn-skip">⏭ Skip</button>
         </div>
       </div>
     </div>
 
-    <!-- Info panel — slides in when clicking 3D objects -->
+    <!-- Info panel -->
     <div id="info-panel" class="hidden">
       <button id="info-close">✕</button>
-      <div id="info-content"></div>
+      <div id="info-body"></div>
     </div>
 
     <!-- Zone label -->
-    <div id="zone-label"></div>
+    <div id="zone-lbl"></div>
 
-    <!-- Start overlay — shown on first load -->
+    <!-- Controls -->
+    <div id="ctrl-hint">
+      <span>🖱 Drag to orbit</span>
+      <span>🖱 Scroll = zoom</span>
+      <span>👆 Click objects</span>
+      <span>⌨ 1-7 keys</span>
+    </div>
+
+    <!-- Start overlay -->
     <div id="start-overlay">
       <div id="start-box">
         <div id="start-bot">🤖</div>
         <h1>Ujas's Data World</h1>
-        <p>An interactive 3D cartoon world showcasing<br/>AWS Data Engineering expertise</p>
-        <p class="hint">🎵 Music will play · 🔊 Voice guide enabled</p>
+        <p>Interactive 3D cartoon portfolio<br/>built with AWS Data Engineering</p>
+        <p class="sh">🎵 Ambient music · 🔊 AI voice guide · 👆 Click everything</p>
         <button id="start-btn">Enter World →</button>
       </div>
     </div>
 
-    <!-- Controls hint -->
-    <div id="controls-hint">
-      <span>🖱 Drag to orbit</span>
-      <span>🖱 Scroll to zoom</span>
-      <span>👆 Click objects</span>
-      <span>⌨ 1–7 keys</span>
-    </div>
-  </div>
-
-  <!-- Google Form hidden iframe -->
-  <iframe name="gf_target" id="gf_target" style="display:none"></iframe>
-
-  <!-- Contact form modal -->
-  <div id="contact-modal" class="hidden">
-    <div id="contact-box">
-      <button id="contact-close">✕</button>
-      <h2>📬 Send Message to Ujas</h2>
-      <p>Goes directly to Ujas's email via Google Forms</p>
-      <form id="gform" target="gf_target" method="POST">
-        <label>Name<input type="text" name="entry_name" required placeholder="Your name"/></label>
-        <label>Email<input type="email" name="entry_email" required placeholder="your@email.com"/></label>
-        <label>Message<textarea name="entry_msg" rows="4" required placeholder="Let's build something amazing..."></textarea></label>
-        <button type="submit" class="sbtn">🚀 Send Message</button>
-        <div id="form-ok" style="display:none">✅ Sent! Ujas will reply soon.</div>
-      </form>
-      <div id="contact-links">
-        <a href="mailto:ujasdubal@gmail.com">✉ ujasdubal@gmail.com</a>
-        <a href="https://www.linkedin.com/in/ujasdubal" target="_blank" rel="noopener">🔗 LinkedIn</a>
-        <span>📍 Ahmedabad, India</span>
+    <!-- Contact modal -->
+    <div id="contact-modal" class="hidden">
+      <div id="contact-box">
+        <button id="contact-close">✕</button>
+        <h2>📬 Message Ujas</h2>
+        <p class="fc">Submits directly to Ujas's email via Google Forms</p>
+        <form id="gform" method="POST" target="gf_hidden">
+          <label>Name
+            <input type="text" id="f-name" required placeholder="Your name"/>
+          </label>
+          <label>Email
+            <input type="email" id="f-email" required placeholder="your@email.com"/>
+          </label>
+          <label>Message
+            <textarea id="f-msg" rows="4" required placeholder="Let's build something amazing..."></textarea>
+          </label>
+          <button type="submit" class="sbtn">🚀 Send Message</button>
+          <div id="form-ok"></div>
+        </form>
+        <div id="c-links">
+          <a href="mailto:ujasdubal@gmail.com">✉ ujasdubal@gmail.com</a>
+          <a href="https://www.linkedin.com/in/ujasdubal" target="_blank" rel="noopener">🔗 LinkedIn</a>
+          <span>📍 Ahmedabad, Gujarat, India</span>
+        </div>
       </div>
     </div>
-  </div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r152/three.min.js"></script>
+    <!-- Hidden iframe for form submission -->
+    <iframe name="gf_hidden" id="gf_hidden" style="display:none" title="form target"></iframe>
+
+  </div><!-- /hud -->
+
+  <!--
+    SCRIPT ORDER IS CRITICAL:
+    1. Three.js must load and execute first
+    2. data.js sets window.PD
+    3. world.js uses window.load event to guarantee both are ready
+  -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
   <script src="assets/data.js"></script>
   <script src="assets/world.js"></script>
+
 </body>
 </html>

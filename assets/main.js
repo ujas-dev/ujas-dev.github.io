@@ -1,313 +1,490 @@
-// YEAR
-document.getElementById("year").textContent = new Date().getFullYear();
+// ================================================================
+// UJAS DUBAL PORTFOLIO — main.js
+// WebGL particles, 4D Tesseract, holographic cards, cursor, keyboard
+// ================================================================
 
-// Custom cursor
-const cursorDot = document.querySelector(".cursor-dot");
-const cursorOutline = document.querySelector(".cursor-outline");
-let mouseX = window.innerWidth / 2;
-let mouseY = window.innerHeight / 2;
-let outlineX = mouseX;
-let outlineY = mouseY;
+const C = window.PORTFOLIO_CONFIG;
 
-document.addEventListener("pointermove", (e) => {
-  mouseX = e.clientX;
-  mouseY = e.clientY;
-  if (cursorDot) {
-    cursorDot.style.transform = `translate3d(${mouseX}px, ${mouseY}px, 0)`;
-  }
+// ─── Populate from config ──────────────────────────────────────
+document.getElementById('year').textContent = new Date().getFullYear();
+document.getElementById('avatar-img').src = C.avatarUrl;
+document.getElementById('hero-name').textContent = C.name;
+document.getElementById('hero-title').textContent = C.title;
+document.getElementById('hero-tagline').textContent = C.tagline;
+
+// Stats counters
+const statsRow = document.getElementById('stats-row');
+C.stats.forEach(s => {
+  const el = document.createElement('div');
+  el.className = 'stat-item';
+  el.innerHTML = `<span class="stat-val" data-target="${s.value}" data-suffix="${s.suffix}">0${s.suffix}</span><span class="stat-label">${s.label}</span>`;
+  statsRow.appendChild(el);
 });
 
-function lerp(start, end, amt) {
-  return (1 - amt) * start + amt * end;
+function animateCounters() {
+  document.querySelectorAll('.stat-val').forEach(el => {
+    const target = parseFloat(el.dataset.target);
+    const suffix = el.dataset.suffix;
+    let start = 0;
+    const step = () => {
+      start += target / 60;
+      if (start >= target) { el.textContent = target + suffix; return; }
+      el.textContent = (target % 1 !== 0 ? start.toFixed(1) : Math.floor(start)) + suffix;
+      requestAnimationFrame(step);
+    };
+    step();
+  });
 }
+setTimeout(animateCounters, 800);
 
-function animateCursor() {
-  outlineX = lerp(outlineX, mouseX, 0.16);
-  outlineY = lerp(outlineY, mouseY, 0.16);
-  if (cursorOutline) {
-    cursorOutline.style.transform = `translate3d(${outlineX}px, ${outlineY}px, 0)`;
-  }
-  requestAnimationFrame(animateCursor);
+// Skills
+const orbsWrap = document.getElementById('skills-orbs-wrap');
+const barsWrap = document.getElementById('skills-bars-wrap');
+C.skills.forEach(s => {
+  const orb = document.createElement('div');
+  orb.className = 'skill-orb';
+  orb.textContent = s.name;
+  orb.style.setProperty('--orb-color', s.color + '33');
+  orb.style.borderColor = s.color + '55';
+  orbsWrap.appendChild(orb);
+
+  const row = document.createElement('div');
+  row.className = 'skill-bar-row';
+  row.innerHTML = `
+    <div class="skill-bar-name">${s.name}</div>
+    <div class="skill-bar-track"><div class="skill-bar-fill" style="background:linear-gradient(to right,${s.color},${s.color}88)" data-width="${s.level}"></div></div>
+    <div class="skill-bar-pct">${s.level}%</div>`;
+  barsWrap.appendChild(row);
+});
+
+// Experience timeline
+const expEl = document.getElementById('exp-timeline');
+C.experience.forEach(e => {
+  const el = document.createElement('div');
+  el.className = 'exp-item';
+  el.innerHTML = `
+    <div class="exp-meta">
+      <div class="exp-company">${e.company}</div>
+      <div class="exp-period">${e.period}</div>
+      <div class="exp-location">${e.location}</div>
+    </div>
+    <div class="exp-body">
+      <div class="exp-role">${e.role}</div>
+      <ul class="exp-highlights">${e.highlights.map(h=>`<li>${h}</li>`).join('')}</ul>
+    </div>`;
+  expEl.appendChild(el);
+});
+
+// Certifications
+const certGrid = document.getElementById('cert-grid');
+C.certifications.forEach(cert => {
+  const el = document.createElement('div');
+  el.className = 'cert-flip';
+  el.innerHTML = `
+    <div class="cert-flipper">
+      <div class="cert-front">
+        <div class="cert-badge-glow" style="--cert-color:${cert.color}"></div>
+        <img src="${cert.badgeUrl}" alt="${cert.title}" onerror="this.src='https://placehold.co/80x80/0f172a/38bdf8?text=CERT'" />
+        <div class="cert-title">${cert.title}</div>
+        <div class="cert-issuer">${cert.issuer}</div>
+        <div class="cert-year">${cert.year}</div>
+      </div>
+      <div class="cert-back" style="border-color:${cert.color}44">
+        <div class="cert-badge-glow" style="--cert-color:${cert.color}"></div>
+        <h4>${cert.title}</h4>
+        <p>${cert.issuer} · ${cert.year}</p>
+        <a href="${cert.credlyUrl}" target="_blank" rel="noopener">Verify Certificate ↗</a>
+      </div>
+    </div>`;
+  certGrid.appendChild(el);
+});
+
+// Projects
+const projGrid = document.getElementById('projects-grid');
+C.projects.forEach(p => {
+  const el = document.createElement('article');
+  el.className = 'proj-card';
+  el.style.setProperty('--proj-color', p.color);
+  el.innerHTML = `
+    <div class="proj-title">${p.title}</div>
+    <div class="proj-client">${p.client}</div>
+    <div class="proj-desc">${p.desc}</div>
+    <div class="proj-tags">${p.tags.map(t=>`<span class="proj-tag">${t}</span>`).join('')}</div>`;
+  projGrid.appendChild(el);
+});
+
+// Contact links
+const clEl = document.getElementById('contact-links');
+clEl.innerHTML = `
+  <a href="mailto:${C.email}" class="contact-link">✉ ${C.email}</a>
+  <a href="${C.linkedin}" target="_blank" rel="noopener" class="contact-link">🔗 LinkedIn: ujasdubal</a>
+  <a href="${C.github}" target="_blank" rel="noopener" class="contact-link">⬡ GitHub: ujas-dev</a>
+  <span class="contact-link">📍 ${C.location}</span>`;
+
+// ─── Utility ──────────────────────────────────────────────────
+function scrollTo(hash) {
+  const el = document.querySelector(hash);
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
-animateCursor();
+window.scrollTo = scrollTo;
 
-// Hover state
-const hoverTargets = document.querySelectorAll("a, button, .magnetic, .nav-link, .logo");
-hoverTargets.forEach((el) => {
-  el.addEventListener("pointerenter", () => {
-    document.body.classList.add("cursor-hover");
-  });
-  el.addEventListener("pointerleave", () => {
-    document.body.classList.remove("cursor-hover");
-  });
+// ─── Custom Cursor ────────────────────────────────────────────
+const dot = document.getElementById('cursor-dot');
+const glow = document.getElementById('cursor-glow');
+let mx = -200, my = -200, glx = -200, gly = -200;
+
+document.addEventListener('pointermove', e => { mx = e.clientX; my = e.clientY; });
+document.addEventListener('pointerleave', () => { mx = -200; my = -200; });
+
+;(function cursorLoop() {
+  glx += (mx - glx) * 0.14;
+  gly += (my - gly) * 0.14;
+  dot.style.left = mx + 'px';
+  dot.style.top = my + 'px';
+  glow.style.left = glx + 'px';
+  glow.style.top = gly + 'px';
+  requestAnimationFrame(cursorLoop);
+})();
+
+document.querySelectorAll('a,button,.holo-card,.cert-flip,.proj-card,.skill-orb,.mag-btn').forEach(el => {
+  el.addEventListener('pointerenter', () => document.body.classList.add('hovering'));
+  el.addEventListener('pointerleave', () => document.body.classList.remove('hovering'));
 });
 
-// Magnetic buttons
-document.querySelectorAll(".magnetic").forEach((btn) => {
-  const strength = 20;
-  btn.addEventListener("pointermove", (e) => {
-    const rect = btn.getBoundingClientRect();
-    const relX = e.clientX - rect.left - rect.width / 2;
-    const relY = e.clientY - rect.top - rect.height / 2;
-    btn.style.transform = `translate(${relX / strength}px, ${relY / strength}px)`;
+// ─── Magnetic Buttons ─────────────────────────────────────────
+document.querySelectorAll('.mag-btn').forEach(btn => {
+  btn.addEventListener('pointermove', e => {
+    const r = btn.getBoundingClientRect();
+    const x = (e.clientX - r.left - r.width / 2) / 4;
+    const y = (e.clientY - r.top - r.height / 2) / 4;
+    btn.style.transform = `translate(${x}px, ${y}px) translateY(-2px)`;
   });
-  btn.addEventListener("pointerleave", () => {
-    btn.style.transform = "translate(0,0)";
-  });
+  btn.addEventListener('pointerleave', () => { btn.style.transform = ''; });
 });
 
-// Smooth scroll for buttons with data-scroll-target
-document.querySelectorAll("[data-scroll-target]").forEach((btn) => {
-  btn.addEventListener("click", () => {
-    const target = document.querySelector(btn.dataset.scrollTarget);
-    if (target) {
-      target.scrollIntoView({ behavior: "smooth", block: "start" });
+// ─── Holographic 3D Tilt Cards ────────────────────────────────
+document.querySelectorAll('[data-holo]').forEach(card => {
+  card.addEventListener('pointermove', e => {
+    const r = card.getBoundingClientRect();
+    const x = (e.clientX - r.left) / r.width;
+    const y = (e.clientY - r.top) / r.height;
+    const rotX = (y - 0.5) * -20;
+    const rotY = (x - 0.5) * 20;
+    card.style.transform = `perspective(600px) rotateX(${rotX}deg) rotateY(${rotY}deg) scale3d(1.03,1.03,1.03)`;
+    card.style.boxShadow = `${(x - 0.5) * -20}px ${(y - 0.5) * -20}px 40px rgba(0,0,0,0.5), var(--glow-cyan)`;
+    const glare = card.querySelector('.holo-glare');
+    if (glare) {
+      glare.style.background = `radial-gradient(circle at ${x*100}% ${y*100}%, rgba(255,255,255,0.1) 0%, transparent 55%)`;
     }
   });
-});
-
-// Keyboard navigation between sections
-const sections = Array.from(document.querySelectorAll(".section"));
-let currentSectionIndex = 0;
-
-function scrollToSection(index) {
-  const clamped = Math.max(0, Math.min(sections.length - 1, index));
-  const section = sections[clamped];
-  if (section) {
-    section.scrollIntoView({ behavior: "smooth", block: "start" });
-    currentSectionIndex = clamped;
-  }
-}
-
-window.addEventListener("keydown", (e) => {
-  const key = e.key.toLowerCase();
-  if (key === "arrowdown" || key === "s") {
-    scrollToSection(currentSectionIndex + 1);
-  } else if (key === "arrowup" || key === "w") {
-    scrollToSection(currentSectionIndex - 1);
-  } else if (key >= "1" && key <= "6") {
-    const targetIndex = parseInt(key, 10) - 1;
-    scrollToSection(targetIndex);
-  } else if (key === "escape") {
-    scrollToSection(0);
-  }
-});
-
-// Track current section by scroll
-const io = new IntersectionObserver(
-  (entries) => {
-    entries.forEach((entry) => {
-      if (entry.isIntersecting) {
-        const idxAttr = entry.target.getAttribute("data-section-index");
-        if (idxAttr) currentSectionIndex = parseInt(idxAttr, 10) - 1;
-      }
-    });
-  },
-  { threshold: 0.5 }
-);
-
-sections.forEach((section) => io.observe(section));
-
-// Parallax on mouse move
-const parallaxEls = document.querySelectorAll("[data-parallax]");
-window.addEventListener("pointermove", (e) => {
-  const x = (e.clientX / window.innerWidth - 0.5) * 2;
-  const y = (e.clientY / window.innerHeight - 0.5) * 2;
-  parallaxEls.forEach((el, i) => {
-    const depth = (i + 1) * 8;
-    el.style.transform = `translate3d(${-(x * depth)}px, ${-(y * depth)}px, 0)`;
+  card.addEventListener('pointerleave', () => {
+    card.style.transform = '';
+    card.style.boxShadow = '';
+    const glare = card.querySelector('.holo-glare');
+    if (glare) glare.style.background = '';
   });
 });
 
-// Scroll-based reveal using GSAP
+// ─── Keyboard Navigation ──────────────────────────────────────
+const SECTIONS = ['#hero','#about','#skills','#experience','#certifications','#projects','#contact'];
+let secIdx = 0;
+function jumpSec(i) {
+  const c = Math.max(0, Math.min(SECTIONS.length - 1, i));
+  secIdx = c;
+  scrollTo(SECTIONS[c]);
+}
+window.addEventListener('keydown', e => {
+  const k = e.key;
+  if (k === 'ArrowDown' || k === 's') { e.preventDefault(); jumpSec(secIdx + 1); }
+  else if (k === 'ArrowUp' || k === 'w') { e.preventDefault(); jumpSec(secIdx - 1); }
+  else if (k >= '1' && k <= '7') jumpSec(parseInt(k) - 1);
+  else if (k === 'Escape') jumpSec(0);
+});
+const secObserver = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) secIdx = parseInt(e.target.dataset.sec || 0); });
+}, { threshold: 0.4 });
+document.querySelectorAll('.section[data-sec]').forEach(s => secObserver.observe(s));
+
+// ─── GSAP ScrollTrigger Reveals ──────────────────────────────
 if (window.gsap && window.ScrollTrigger) {
   gsap.registerPlugin(ScrollTrigger);
-
-  gsap.utils.toArray(".section").forEach((section) => {
-    const items = section.querySelectorAll(
-      ".about-card, .skill-column, .timeline-item, .project-card, .contact-card, .contact-form"
-    );
-    if (items.length === 0) return;
-    gsap.from(items, {
-      opacity: 0,
-      y: 24,
-      duration: 0.7,
-      stagger: 0.08,
-      ease: "power3.out",
-      scrollTrigger: {
-        trigger: section,
-        start: "top 80%",
-        toggleActions: "play none none reverse",
-      },
+  gsap.utils.toArray('.holo-card,.exp-item,.cert-flip,.proj-card').forEach((el, i) => {
+    gsap.from(el, {
+      opacity: 0, y: 30, rotateX: -8, duration: 0.7,
+      delay: (i % 4) * 0.07, ease: 'power3.out',
+      scrollTrigger: { trigger: el, start: 'top 88%', toggleActions: 'play none none reverse' }
     });
+  });
+
+  // Skill bar animation
+  ScrollTrigger.create({
+    trigger: '#skills',
+    start: 'top 70%',
+    onEnter: () => {
+      document.querySelectorAll('.skill-bar-fill').forEach(b => {
+        b.style.width = b.dataset.width + '%';
+      });
+    }
   });
 }
 
-// THREE.JS 3D BACKGROUND
-let scene, camera, renderer, planet, ring, orbitingCubes;
+// ─── Terminal Typing Effect ───────────────────────────────────
+const lines = [
+  `whoami`,
+  `echo "${C.name} | ${C.title}"`,
+  `aws s3 ls s3://ujas-data-pipelines/ | wc -l`,
+  `spark-submit --master yarn pipeline.py --env prod`,
+];
+let lineIdx = 0, charIdx = 0, typing = true;
+const tText = document.getElementById('t-text');
 
-function initThree() {
-  const canvas = document.getElementById("bg-canvas");
-  if (!canvas || !window.THREE) return;
+function typeNext() {
+  if (lineIdx >= lines.length) { lineIdx = 0; }
+  const line = lines[lineIdx];
+  if (typing) {
+    if (charIdx < line.length) {
+      tText.textContent += line[charIdx++];
+      setTimeout(typeNext, 55 + Math.random() * 30);
+    } else {
+      typing = false;
+      setTimeout(typeNext, 1400);
+    }
+  } else {
+    if (charIdx > 0) {
+      tText.textContent = line.slice(0, --charIdx);
+      setTimeout(typeNext, 18);
+    } else {
+      typing = true;
+      lineIdx++;
+      setTimeout(typeNext, 300);
+    }
+  }
+}
+setTimeout(typeNext, 600);
 
-  const w = window.innerWidth;
-  const h = window.innerHeight;
-
-  scene = new THREE.Scene();
-  camera = new THREE.PerspectiveCamera(55, w / h, 0.1, 100);
-  camera.position.set(0, 0, 8);
-
-  renderer = new THREE.WebGLRenderer({
-    canvas,
-    antialias: true,
-    alpha: true,
-  });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+// ─── THREE.JS GPU PARTICLE FIELD (50k particles) ─────────────
+(function initParticleField() {
+  if (!window.THREE) return;
+  const canvas = document.getElementById('bg');
+  const w = window.innerWidth, h = window.innerHeight;
+  const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: false });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
   renderer.setSize(w, h);
 
-  // Atmosphere-like background fog
-  scene.fog = new THREE.FogExp2(0x020617, 0.12);
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(60, w / h, 0.1, 150);
+  camera.position.z = 30;
 
-  // Lighting
-  const ambient = new THREE.AmbientLight(0x64748b, 0.8);
-  scene.add(ambient);
+  const COUNT = 50000;
+  const positions = new Float32Array(COUNT * 3);
+  const velocities = new Float32Array(COUNT * 3);
+  const colors = new Float32Array(COUNT * 3);
 
-  const dirLight = new THREE.DirectionalLight(0x38bdf8, 1.1);
-  dirLight.position.set(3, 6, 4);
-  scene.add(dirLight);
-
-  const rimLight = new THREE.DirectionalLight(0xe11d48, 0.8);
-  rimLight.position.set(-4, -5, -3);
-  scene.add(rimLight);
-
-  // Data planet
-  const planetGeo = new THREE.IcosahedronGeometry(2.2, 1);
-  const planetMat = new THREE.MeshStandardMaterial({
-    color: 0x020617,
-    emissive: 0x0f172a,
-    roughness: 0.4,
-    metalness: 0.8,
-    wireframe: false,
-  });
-  planet = new THREE.Mesh(planetGeo, planetMat);
-  scene.add(planet);
-
-  // Wireframe overlay
-  const wireGeo = new THREE.IcosahedronGeometry(2.22, 3);
-  const wireMat = new THREE.MeshBasicMaterial({
-    color: 0x38bdf8,
-    wireframe: true,
-    transparent: true,
-    opacity: 0.25,
-  });
-  const wireframe = new THREE.Mesh(wireGeo, wireMat);
-  planet.add(wireframe);
-
-  // Ring / orbit
-  const ringGeo = new THREE.TorusGeometry(3.5, 0.06, 16, 100);
-  const ringMat = new THREE.MeshStandardMaterial({
-    color: 0x38bdf8,
-    emissive: 0x0ea5e9,
-    roughness: 0.35,
-    metalness: 0.9,
-  });
-  ring = new THREE.Mesh(ringGeo, ringMat);
-  ring.rotation.x = Math.PI / 2.4;
-  scene.add(ring);
-
-  // Orbiting data cubes
-  orbitingCubes = [];
-  const cubeGeo = new THREE.BoxGeometry(0.3, 0.3, 0.3);
-  for (let i = 0; i < 18; i++) {
-    const cubeMat = new THREE.MeshStandardMaterial({
-      color: i % 3 === 0 ? 0xe11d48 : 0x38bdf8,
-      emissive: i % 3 === 0 ? 0x9f1239 : 0x0284c7,
-      metalness: 0.9,
-      roughness: 0.2,
-    });
-    const cube = new THREE.Mesh(cubeGeo, cubeMat);
-    const angle = (i / 18) * Math.PI * 2;
-    const radius = 3.5 + (Math.random() - 0.5) * 0.4;
-    cube.userData = { angle, radius, speed: 0.25 + Math.random() * 0.3 };
-    cube.position.set(
-      Math.cos(angle) * radius,
-      (Math.random() - 0.5) * 0.6,
-      Math.sin(angle) * radius
-    );
-    scene.add(cube);
-    orbitingCubes.push(cube);
+  for (let i = 0; i < COUNT; i++) {
+    positions[i*3]   = (Math.random() - 0.5) * 80;
+    positions[i*3+1] = (Math.random() - 0.5) * 80;
+    positions[i*3+2] = (Math.random() - 0.5) * 60;
+    velocities[i*3]   = (Math.random() - 0.5) * 0.01;
+    velocities[i*3+1] = (Math.random() - 0.5) * 0.01;
+    velocities[i*3+2] = (Math.random() - 0.5) * 0.008;
+    const mix = Math.random();
+    colors[i*3]   = mix > 0.6 ? 0.22 : (mix > 0.3 ? 0.65 : 0.88);
+    colors[i*3+1] = mix > 0.6 ? 0.74 : (mix > 0.3 ? 0.47 : 0.11);
+    colors[i*3+2] = mix > 0.6 ? 0.98 : (mix > 0.3 ? 0.98 : 0.27);
   }
 
-  // Subtle starfield
-  const starGeometry = new THREE.BufferGeometry();
-  const starCount = 700;
-  const starPositions = new Float32Array(starCount * 3);
-  for (let i = 0; i < starCount; i++) {
-    starPositions[i * 3 + 0] = (Math.random() - 0.5) * 60;
-    starPositions[i * 3 + 1] = (Math.random() - 0.5) * 60;
-    starPositions[i * 3 + 2] = (Math.random() - 0.5) * 60;
-  }
-  starGeometry.setAttribute("position", new THREE.BufferAttribute(starPositions, 3));
-  const starMaterial = new THREE.PointsMaterial({
-    color: 0x38bdf8,
-    size: 0.045,
-    transparent: true,
-    opacity: 0.6,
-    depthWrite: false,
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+  const mat = new THREE.PointsMaterial({
+    size: 0.12, vertexColors: true, transparent: true, opacity: 0.7,
+    blending: THREE.AdditiveBlending, depthWrite: false,
   });
-  const stars = new THREE.Points(starGeometry, starMaterial);
-  scene.add(stars);
+  const particles = new THREE.Points(geo, mat);
+  scene.add(particles);
+
+  // Mouse influence
+  let mxN = 0, myN = 0;
+  document.addEventListener('pointermove', e => {
+    mxN = (e.clientX / window.innerWidth - 0.5) * 2;
+    myN = -(e.clientY / window.innerHeight - 0.5) * 2;
+  });
 
   // Resize
-  window.addEventListener("resize", () => {
-    const w2 = window.innerWidth;
-    const h2 = window.innerHeight;
+  window.addEventListener('resize', () => {
+    const w2 = window.innerWidth, h2 = window.innerHeight;
+    renderer.setSize(w2, h2);
     camera.aspect = w2 / h2;
     camera.updateProjectionMatrix();
-    renderer.setSize(w2, h2);
   });
 
-  // Mouse-based camera parallax
-  let targetRotX = 0;
-  let targetRotY = 0;
-  window.addEventListener("pointermove", (e) => {
-    const normX = e.clientX / window.innerWidth - 0.5;
-    const normY = e.clientY / window.innerHeight - 0.5;
-    targetRotY = normX * 0.4;
-    targetRotX = normY * 0.2;
+  // Animate
+  let t = 0;
+  function animate() {
+    requestAnimationFrame(animate);
+    t += 0.0008;
+    const pos = geo.attributes.position.array;
+    for (let i = 0; i < COUNT; i++) {
+      pos[i*3]   += velocities[i*3]   + Math.sin(t + i * 0.01) * 0.002 + mxN * 0.003;
+      pos[i*3+1] += velocities[i*3+1] + Math.cos(t + i * 0.013) * 0.002 + myN * 0.003;
+      pos[i*3+2] += velocities[i*3+2];
+      // Wrap particles
+      if (pos[i*3] > 40) pos[i*3] = -40;
+      if (pos[i*3] < -40) pos[i*3] = 40;
+      if (pos[i*3+1] > 40) pos[i*3+1] = -40;
+      if (pos[i*3+1] < -40) pos[i*3+1] = 40;
+      if (pos[i*3+2] > 30) pos[i*3+2] = -30;
+      if (pos[i*3+2] < -30) pos[i*3+2] = 30;
+    }
+    geo.attributes.position.needsUpdate = true;
+    particles.rotation.y += 0.00015 + mxN * 0.0005;
+    camera.position.x += (mxN * 6 - camera.position.x) * 0.04;
+    camera.position.y += (myN * 4 - camera.position.y) * 0.04;
+    camera.lookAt(0, 0, 0);
+    renderer.render(scene, camera);
+  }
+  animate();
+})();
+
+// ─── 4D TESSERACT (mathematically correct) ────────────────────
+(function initTesseract() {
+  if (!window.THREE) return;
+  const wrap = document.getElementById('tesseract-wrap');
+  const canvas = document.getElementById('tesseract-canvas');
+  const W = 340, H = 340;
+  const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.setSize(W, H);
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(50, 1, 0.01, 100);
+  camera.position.z = 4;
+
+  // Ambient
+  scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+
+  // 4D tesseract: 16 vertices in R^4
+  function makeVerts4D() {
+    const v = [];
+    for (let i = 0; i < 16; i++) {
+      v.push([
+        (i & 1) ? 1 : -1,
+        (i & 2) ? 1 : -1,
+        (i & 4) ? 1 : -1,
+        (i & 8) ? 1 : -1,
+      ]);
+    }
+    return v;
+  }
+
+  // Edges: pairs that differ in exactly 1 bit
+  function makeEdges4D(verts) {
+    const edges = [];
+    for (let a = 0; a < 16; a++)
+      for (let b = a+1; b < 16; b++) {
+        let diff = 0;
+        for (let k = 0; k < 4; k++) if (verts[a][k] !== verts[b][k]) diff++;
+        if (diff === 1) edges.push([a, b]);
+      }
+    return edges;
+  }
+
+  const verts4D = makeVerts4D();
+  const edges4D = makeEdges4D(verts4D);
+
+  // 4D rotation matrices
+  function rot4D(v, plane, angle) {
+    const [i,j] = plane;
+    const c = Math.cos(angle), s = Math.sin(angle);
+    const u = [...v];
+    u[i] = c * v[i] - s * v[j];
+    u[j] = s * v[i] + c * v[j];
+    return u;
+  }
+
+  // Project 4D → 3D via perspective
+  function project4to3(v) {
+    const w = 2.0 / (2.0 - v[3]);
+    return new THREE.Vector3(v[0] * w, v[1] * w, v[2] * w);
+  }
+
+  // Build line objects
+  const lineMat = new THREE.LineBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.85 });
+  const lineObjs = edges4D.map(() => {
+    const geo = new THREE.BufferGeometry();
+    const pts = [new THREE.Vector3(), new THREE.Vector3()];
+    geo.setFromPoints(pts);
+    const line = new THREE.Line(geo, lineMat.clone());
+    scene.add(line);
+    return { line, geo };
   });
 
-  function render() {
-    requestAnimationFrame(render);
+  // Vertex glow spheres
+  const sphereMat = new THREE.MeshBasicMaterial({ color: 0xe11d48 });
+  const sphereGeo = new THREE.SphereGeometry(0.06, 8, 8);
+  const spheres = verts4D.map(() => {
+    const mesh = new THREE.Mesh(sphereGeo, sphereMat.clone());
+    scene.add(mesh);
+    return mesh;
+  });
 
-    // Planet rotation
-    planet.rotation.y += 0.0018;
-    planet.rotation.x += 0.0005;
+  // Orbit Controls (manual for zero-dependency)
+  let isDragging = false, lastMX = 0, lastMY = 0;
+  let rotX = 0, rotY = 0, zoom = 1;
 
-    // Ring slow tilt
-    ring.rotation.z += 0.0006;
+  canvas.addEventListener('pointerdown', e => { isDragging = true; lastMX = e.clientX; lastMY = e.clientY; });
+  canvas.addEventListener('pointerup', () => { isDragging = false; });
+  canvas.addEventListener('pointermove', e => {
+    if (!isDragging) return;
+    rotY += (e.clientX - lastMX) * 0.01;
+    rotX += (e.clientY - lastMY) * 0.01;
+    lastMX = e.clientX; lastMY = e.clientY;
+  });
+  canvas.addEventListener('wheel', e => {
+    zoom = Math.max(0.5, Math.min(3, zoom + e.deltaY * 0.002));
+    camera.position.z = 4 * zoom;
+  });
 
-    // Orbiting cubes animation
-    const t = performance.now() / 1000;
-    orbitingCubes.forEach((cube) => {
-      const { radius, speed } = cube.userData;
-      const a = cube.userData.angle + t * speed * 0.4;
-      cube.position.x = Math.cos(a) * radius;
-      cube.position.z = Math.sin(a) * radius;
-      cube.position.y = Math.sin(a * 2.0) * 0.5;
-      cube.rotation.x += 0.01;
-      cube.rotation.y += 0.015;
+  let t = 0;
+  function animate() {
+    requestAnimationFrame(animate);
+    t += 0.006;
+
+    // Auto 4D rotations in multiple planes
+    let rotated = verts4D.map(v => {
+      let u = v;
+      u = rot4D(u, [0,3], t * 0.7);
+      u = rot4D(u, [1,2], t * 0.5);
+      u = rot4D(u, [0,2], t * 0.3);
+      u = rot4D(u, [1,3], t * 0.4);
+      return u;
     });
 
-    // Camera parallax
-    camera.position.x += (targetRotY * 4 - camera.position.x) * 0.05;
-    camera.position.y += (-targetRotX * 3 - camera.position.y) * 0.05;
-    camera.lookAt(0, 0, 0);
+    // Manual 3D rotation overlay from drag
+    const cosX = Math.cos(rotX), sinX = Math.sin(rotX);
+    const cosY = Math.cos(rotY), sinY = Math.sin(rotY);
+
+    const projected = rotated.map(v => {
+      let p = project4to3(v);
+      // Apply drag rotation
+      let y2 = cosX * p.y - sinX * p.z;
+      let z2 = sinX * p.y + cosX * p.z;
+      let x2 = cosY * p.x + sinY * z2;
+      let z3 = -sinY * p.x + cosY * z2;
+      return new THREE.Vector3(x2, y2, z3);
+    });
+
+    // Update edges
+    edges4D.forEach(([a,b], i) => {
+      const { line, geo } = lineObjs[i];
+      geo.setFromPoints([projected[a], projected[b]]);
+    });
+
+    // Update vertex spheres
+    projected.forEach((p, i) => { spheres[i].position.copy(p); });
 
     renderer.render(scene, camera);
   }
-
-  render();
-}
-
-initThree();
+  animate();
+})();

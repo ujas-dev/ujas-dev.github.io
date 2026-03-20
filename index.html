@@ -10,15 +10,17 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap"/>
   <link rel="stylesheet" href="assets/style.css"/>
 
-  <!-- ES Module importmap — eliminates the deprecation warning -->
+  <!-- importmap MUST come before any module script -->
   <script type="importmap">
   {
     "imports": {
-      "three": "https://cdn.jsdelivr.net/npm/three@0.163.0/build/three.module.js",
-      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.163.0/examples/jsm/"
+      "three": "https://cdn.jsdelivr.net/npm/three@0.163.0/build/three.module.js"
     }
   }
   </script>
+
+  <!-- data.js MUST load as classic script BEFORE the module -->
+  <script src="assets/data.js"></script>
 </head>
 <body>
 
@@ -26,7 +28,6 @@
 
   <div id="hud">
 
-    <!-- TOP BAR -->
     <div id="topbar">
       <div id="tb-left">
         <img id="ava-img" src="assets/avatar.jpg" alt="Ujas" onerror="this.style.display='none'"/>
@@ -50,13 +51,11 @@
       </div>
     </div>
 
-    <!-- AIDA 2D CANVAS AVATAR -->
     <div id="aida-wrap">
       <canvas id="aida-canvas" width="110" height="150"></canvas>
       <div id="aida-nametag">A·I·D·A</div>
     </div>
 
-    <!-- SPEECH BUBBLE -->
     <div id="speech-bubble">
       <div id="speech-zone"></div>
       <div id="speech-text">Initialising Tron Data World…</div>
@@ -66,36 +65,32 @@
       </div>
     </div>
 
-    <!-- INFO PANEL (right side) -->
     <div id="info-panel" class="hidden">
       <div id="info-head">
         <span id="info-title"></span>
         <div style="display:flex;gap:5px">
-          <button id="info-read" title="Read aloud">▶ HEAR</button>
+          <button id="info-read">▶ HEAR</button>
           <button id="info-close">✕</button>
         </div>
       </div>
       <div id="info-body"></div>
     </div>
 
-    <!-- ZONE LABEL -->
     <div id="zone-lbl"></div>
-
-    <!-- HOVER TOOLTIP -->
     <div id="tooltip" class="hidden"></div>
 
-    <!-- CONTROLS -->
     <div id="ctrl-hint">
       <span>🖱 Drag=Orbit</span>
       <span>Scroll=Zoom</span>
       <span>👆 Click=Inspect</span>
       <span>1-7=Zone</span>
+      <span>N=Night</span>
+      <span>Dbl-click=Mark</span>
     </div>
 
-    <!-- NEWS PANEL -->
     <div id="news-panel" class="hidden">
       <div id="news-head">
-        <span>◈ GLOBAL LIVE NEWS FEED</span>
+        <span>◈ GLOBAL LIVE NEWS</span>
         <div style="display:flex;gap:5px;align-items:center">
           <select id="news-category">
             <option value="tech">Technology</option>
@@ -107,17 +102,16 @@
           <button id="news-close">✕</button>
         </div>
       </div>
-      <div id="news-list"><div class="news-loading">◉ FETCHING GLOBAL DATA FEED…</div></div>
+      <div id="news-list"></div>
     </div>
 
-    <!-- CONTACT MODAL -->
     <div id="contact-modal" class="hidden">
       <div id="contact-box">
         <button id="contact-close">✕</button>
         <div id="contact-title">⟡ TRANSMIT MESSAGE TO UJAS</div>
         <p id="contact-sub">Direct line · ujasdubal@gmail.com</p>
-        <label>IDENTIFICATION<input type="text" id="cf-name" placeholder="Your name" autocomplete="name"/></label>
-        <label>COMM ADDRESS<input type="email" id="cf-email" placeholder="your@email.com" autocomplete="email"/></label>
+        <label>IDENTIFICATION<input type="text" id="cf-name" placeholder="Your name" autocomplete="off"/></label>
+        <label>COMM ADDRESS<input type="email" id="cf-email" placeholder="your@email.com" autocomplete="off"/></label>
         <label>TRANSMISSION<textarea id="cf-msg" rows="4" placeholder="Your message…"></textarea></label>
         <button id="cf-send">⟡ TRANSMIT →</button>
         <div id="cf-status"></div>
@@ -130,14 +124,13 @@
       </div>
     </div>
 
-    <!-- ARTICLE MODAL (full news article view) -->
     <div id="article-modal" class="hidden">
       <div id="article-box">
         <div id="article-head">
           <span id="article-source"></span>
           <div style="display:flex;gap:5px">
             <button id="article-read">▶ AIDA READS</button>
-            <button id="article-open">↗ OPEN ORIGINAL</button>
+            <button id="article-open">↗ ORIGINAL</button>
             <button id="article-close">✕</button>
           </div>
         </div>
@@ -147,7 +140,6 @@
       </div>
     </div>
 
-    <!-- START OVERLAY -->
     <div id="start-overlay">
       <div id="start-grid-bg"></div>
       <div id="start-content">
@@ -156,17 +148,17 @@
         <div id="start-sub">AWS DATA ENGINEER · TECHNICAL LEAD · 8.5+ YEARS</div>
         <p>Step into a Tron-style interactive 3D data world<br/>guided by AIDA — your AI assistant</p>
         <div id="start-tags">
-          <span>⬡ TRON CITY</span><span>◈ AI GUIDE</span>
-          <span>◉ LIVE NEWS</span><span>▲ LLM FEED</span>
+          <span>⬡ TRON CITY</span><span>◈ AI GUIDE AIDA</span>
+          <span>◉ LIVE GLOBAL NEWS</span><span>▲ LLM FEED</span>
           <span>◆ VOICE SYNC</span><span>⬟ CLICK WORLD</span>
         </div>
         <button id="start-btn">▶ ENTER DATA WORLD</button>
       </div>
     </div>
 
-  </div><!-- /hud -->
+  </div>
 
-  <!-- ES Module entry point -->
+  <!-- world.js loads AFTER data.js is already parsed (classic script above) -->
   <script type="module" src="assets/world.js"></script>
 
 </body>

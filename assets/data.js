@@ -1,6 +1,6 @@
-/* ============================================================
-   PORTFOLIO DATA  — edit only this file for content changes
-   ============================================================ */
+/* ================================================================
+   data.js — Portfolio content. Edit only this file for changes.
+   ================================================================ */
 window.PD = {
 
   name:     "Ujas Dubal",
@@ -10,24 +10,13 @@ window.PD = {
   email:    "ujasdubal@gmail.com",
   linkedin: "https://www.linkedin.com/in/ujasdubal",
   github:   "https://github.com/ujas-dev",
-  avatar:   "assets/avatar.jpg",
 
-  /* ────────────────────────────────────────────────────────
-     Google Form setup  (required for contact form to work)
-     ────────────────────────────────────────────────────────
-     1. Go to forms.google.com → create form with 3 fields:
-        "Name", "Email", "Message"
-     2. Click the 3-dot menu → "Get pre-filled link"
-     3. Fill dummy values → click "Get Link" → copy the URL
-     4. From that URL extract:
-        - The form action:  .../formResponse
-        - The entry IDs:    entry.XXXXXXXXXX for each field
-     5. Replace the values below
-     ──────────────────────────────────────────────────────── */
-  formAction: "https://docs.google.com/forms/d/e/YOUR_FORM_ID_HERE/formResponse",
-  formName:   "entry.1111111111",
-  formEmail:  "entry.2222222222",
-  formMsg:    "entry.3333333333",
+  /* ─────────────────────────────────────────────────────────────
+     CONTACT FORM — paste your Google Apps Script Web App URL here
+     (see README / setup instructions at top of index.html)
+     Leave blank to use mailto fallback
+  ───────────────────────────────────────────────────────────── */
+  appsScriptUrl: "https://script.google.com/macros/s/AKfycbxgkW3aga3dc0PLKcS7NO7K9RBguUWUyGxZk_nevaJNJFqkbiSe4DWaCU8cl-nA-rJj_Q/exec",
 
   stats: [
     { v: "8.5+", l: "Years Exp"   },
@@ -37,115 +26,131 @@ window.PD = {
   ],
 
   skills: [
-    { name: "Python",         pct: 95, col: 0x38bdf8 },
-    { name: "PySpark",        pct: 92, col: 0xa78bfa },
-    { name: "AWS Redshift",   pct: 90, col: 0xf59e0b },
-    { name: "AWS Glue",       pct: 88, col: 0x34d399 },
-    { name: "SQL",            pct: 93, col: 0x38bdf8 },
-    { name: "Lambda",         pct: 85, col: 0xf472b6 },
-    { name: "Databricks",     pct: 82, col: 0xe11d48 },
-    { name: "Airflow",        pct: 80, col: 0xa78bfa },
-    { name: "GitHub Actions", pct: 87, col: 0x38bdf8 },
-    { name: "Data Modeling",  pct: 88, col: 0x34d399 }
+    { name: "Python",         pct: 95, col: 0x38bdf8, icon: "🐍" },
+    { name: "PySpark",        pct: 92, col: 0xa78bfa, icon: "⚡" },
+    { name: "AWS Redshift",   pct: 90, col: 0xf59e0b, icon: "🗄️" },
+    { name: "AWS Glue",       pct: 88, col: 0x34d399, icon: "🔗" },
+    { name: "SQL",            pct: 93, col: 0x38bdf8, icon: "🔍" },
+    { name: "AWS Lambda",     pct: 85, col: 0xf472b6, icon: "λ" },
+    { name: "Databricks",     pct: 82, col: 0xe11d48, icon: "🔷" },
+    { name: "Apache Airflow", pct: 80, col: 0xa78bfa, icon: "🌊" },
+    { name: "GitHub Actions", pct: 87, col: 0x38bdf8, icon: "⚙" },
+    { name: "Data Modeling",  pct: 88, col: 0x34d399, icon: "📐" }
   ],
 
   experience: [
     {
-      company: "Tata Consultancy Services",
-      role:    "Data Engineer",
-      period:  "Jul 2022 – Present",
-      col:     0x00ffff,
-      speech:  "At TCS I automated ETL across billions of records, led a 9 member team building real time analytics, and improved deployment speed by 34 percent using GitHub Actions.",
-      points:  [
-        "ETL automation → manual workload ↓30%",
-        "Led real-time analytics platform — 9 engineers",
-        "PySpark partitioning → latency ↓20%",
-        "REST APIs: Redshift → Salesforce HTML reports",
-        "CI/CD GitHub Actions → deploy ↑34%",
-        "CloudWatch monitoring → tickets ↓20%"
+      company:  "Tata Consultancy Services",
+      role:     "Data Engineer",
+      period:   "Jul 2022 – Present",
+      location: "Ahmedabad, India",
+      logo:     "https://upload.wikimedia.org/wikipedia/commons/b/b1/Tata_Consultancy_Services_Logo.svg",
+      logoFallback: "🏢",
+      col:      0x00ffff,
+      speech:   "At TCS I automated ETL across billions of records, led a 9 member team building real time analytics, and improved deployment speed by 34 percent using GitHub Actions CI CD.",
+      points: [
+        "ETL automation — manual workload ↓30%",
+        "Led real-time analytics platform — 9-engineer team",
+        "PySpark partitioning → query latency ↓20%",
+        "REST APIs: Redshift → live Salesforce HTML reports",
+        "GitHub Actions CI/CD → deploy efficiency ↑34%",
+        "CloudWatch alerts → support tickets ↓20%"
       ]
     },
     {
-      company: "Mind Inventory",
-      role:    "Software Engineer",
-      period:  "Apr – Jun 2022",
-      col:     0xa78bfa,
-      speech:  "At Mind Inventory I improved PostgreSQL data retrieval by 50 percent through advanced indexing.",
-      points:  [
+      company:  "Mind Inventory",
+      role:     "Software Engineer",
+      period:   "Apr – Jun 2022",
+      location: "Ahmedabad, India",
+      logo:     "https://www.mindinventory.com/img/logo.svg",
+      logoFallback: "💡",
+      col:      0xa78bfa,
+      speech:   "At Mind Inventory I improved PostgreSQL data retrieval speed by 50 percent through advanced indexing strategies.",
+      points: [
         "PostgreSQL indexing → retrieval ↑50%",
-        "Python ETL scripts for analytics"
+        "Python ETL pipelines for analytics"
       ]
     },
     {
-      company: "Tiny ERP Pvt. Ltd.",
-      role:    "Application Engineer",
-      period:  "Aug 2019 – Mar 2022",
-      col:     0xf59e0b,
-      speech:  "At Tiny ERP I built bank payment APIs with AES 256 and RSA encryption ensuring 100 percent transaction security.",
-      points:  [
+      company:  "Tiny ERP Pvt. Ltd.",
+      role:     "Application Engineer",
+      period:   "Aug 2019 – Mar 2022",
+      location: "Ahmedabad, India",
+      logo:     "",
+      logoFallback: "🔐",
+      col:      0xf59e0b,
+      speech:   "At Tiny ERP I built bank payment APIs with AES 256 and RSA encryption, ensuring 100 percent transaction data security.",
+      points: [
         "Bank Payment APIs — AES-256 + RSA + SHA-256",
         "100% transaction security",
-        "Load time ↓25% via optimization",
+        "Page load ↓25% via optimisation",
         "POS system — Django + PostgreSQL"
       ]
     },
     {
-      company: "iSquare / eQuest Solution",
-      role:    "Jr. Software Engineer",
-      period:  "May 2015 – May 2017",
-      col:     0x34d399,
-      speech:  "My early career where I built foundational Python backend and database engineering skills.",
-      points:  [ "Foundational Python, backend, database skills" ]
+      company:  "iSquare / eQuest Solution",
+      role:     "Jr. Software Engineer",
+      period:   "May 2015 – May 2017",
+      location: "Ahmedabad, India",
+      logo:     "",
+      logoFallback: "🚀",
+      col:      0x34d399,
+      speech:   "My early career where I built foundational Python, backend, and database engineering skills that still power everything I do today.",
+      points: [ "Python backend and database foundations" ]
     }
   ],
 
   certifications: [
     {
       title:  "AWS Certified Developer – Associate",
-      issuer: "Amazon Web Services · 2023",
+      issuer: "Amazon Web Services",
+      year:   "2023",
       col:    0xf59e0b,
-      speech: "AWS Certified Developer Associate. This certifies my cloud development expertise on AWS."
+      speech: "AWS Certified Developer Associate, certifying my cloud development expertise on Amazon Web Services."
     },
     {
       title:  "Using Python to Access Web Data",
-      issuer: "University of Michigan · Coursera · 2022",
+      issuer: "University of Michigan · Coursera",
+      year:   "2022",
       col:    0x38bdf8,
       speech: "Python for web data access, certified by University of Michigan on Coursera."
     },
     {
       title:  "Python Data Structures",
-      issuer: "University of Michigan · Coursera · 2022",
+      issuer: "University of Michigan · Coursera",
+      year:   "2022",
       col:    0xa78bfa,
       speech: "Python Data Structures certification from University of Michigan."
     },
     {
       title:  "Programming for Everybody",
-      issuer: "University of Michigan · Coursera · 2021",
+      issuer: "University of Michigan · Coursera",
+      year:   "2021",
       col:    0x34d399,
-      speech: "Programming for Everybody with Python, my foundational Python certification."
+      speech: "Programming for Everybody with Python — my foundational Python certification."
     }
   ],
 
   projects: [
     {
       title:  "Real-Time Analytics Platform",
-      client: "TCS",
+      client: "TCS · 2023",
       col:    0x00ffff,
       tags:   ["AWS Glue", "Lambda", "S3", "RDS", "PySpark"],
-      desc:   "Led 9-engineer team building real-time analytics on AWS, improving decision-making by 30%.",
-      speech: "This real time analytics platform processes streaming data on AWS using Glue Lambda and PySpark delivering insights 30 percent faster."
+      desc:   "Led 9-engineer team. Real-time analytics on AWS improving decision speed by 30%.",
+      speech: "This real time analytics platform processes streaming data on AWS using Glue, Lambda, and PySpark, delivering business insights 30 percent faster."
     },
     {
       title:  "Salesforce–Redshift Pipeline",
-      client: "TCS",
+      client: "TCS · 2024",
       col:    0xa78bfa,
       tags:   ["Redshift", "AppFlow", "REST API", "Glue"],
-      desc:   "Live Salesforce HTML reports from Redshift. Data accuracy improved by 35%.",
+      desc:   "Live Salesforce HTML reports from Redshift. Data accuracy ↑35%.",
       speech: "I built REST APIs serving live Salesforce reports directly from Redshift, boosting data accuracy by 35 percent."
     },
     {
       title:  "Secure Banking Payment APIs",
-      client: "Tiny ERP",
+      client: "Tiny ERP · 2021",
       col:    0xf59e0b,
       tags:   ["Python", "AES-256", "RSA", "SHA-256"],
       desc:   "End-to-end encrypted bank payment APIs — 100% transaction security.",

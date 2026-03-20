@@ -2,133 +2,136 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8"/>
-  <title>Ujas Dubal | AWS Data Engineer — 3D World</title>
+  <title>Ujas Dubal | AWS Data Engineer</title>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <meta name="description" content="Ujas Dubal – AWS Data Engineer & Technical Lead. Interactive 3D cartoon data world portfolio."/>
-  <meta name="keywords" content="Ujas Dubal, Data Engineer, AWS, Redshift, Glue, PySpark, Ahmedabad, India"/>
-  <meta name="author" content="Ujas Jayeshkumar Dubal"/>
-  <meta property="og:title" content="Ujas Dubal | AWS Data Engineer"/>
-  <meta property="og:type" content="website"/>
-  <meta property="og:url" content="https://ujas-dev.github.io/"/>
+  <meta name="description" content="Ujas Dubal – AWS Data Engineer & Technical Lead. Interactive Tron-style 3D data world portfolio."/>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>"/>
   <link rel="stylesheet" href="assets/style.css"/>
 </head>
 <body>
 
-  <!-- Full 3D canvas -->
   <canvas id="world"></canvas>
 
-  <!-- HUD — sits above the 3D world -->
   <div id="hud">
 
-    <!-- Top bar -->
+    <!-- TOP BAR -->
     <div id="topbar">
       <div id="tb-left">
-        <img id="ava-img" src="assets/avatar.jpg" alt="Ujas"
-             onerror="this.style.display='none'"/>
+        <img id="ava-img" src="assets/avatar.jpg" alt="Ujas" onerror="this.style.display='none'"/>
         <div>
           <div id="tb-name">Ujas Dubal</div>
           <div id="tb-role">AWS Data Engineer</div>
         </div>
       </div>
       <nav id="zone-nav">
-        <button class="znav" data-zone="0">🏠 Home</button>
-        <button class="znav" data-zone="1">👤 About</button>
-        <button class="znav" data-zone="2">⚡ Skills</button>
-        <button class="znav" data-zone="3">🚀 Exp</button>
-        <button class="znav" data-zone="4">🏅 Certs</button>
-        <button class="znav" data-zone="5">🛠 Projects</button>
-        <button class="znav" data-zone="6">📬 Contact</button>
+        <button class="znav" data-zone="0">⬡ HOME</button>
+        <button class="znav" data-zone="1">◈ ABOUT</button>
+        <button class="znav" data-zone="2">◉ SKILLS</button>
+        <button class="znav" data-zone="3">▲ CAREER</button>
+        <button class="znav" data-zone="4">◆ CERTS</button>
+        <button class="znav" data-zone="5">⬟ PROJECTS</button>
+        <button class="znav" data-zone="6">⟡ CONTACT</button>
       </nav>
       <div id="tb-right">
-        <button id="btn-music">🎵 Music</button>
-        <button id="btn-news">📰 AI News</button>
+        <button id="btn-music">⬡ MUSIC</button>
+        <button id="btn-news">◈ AI NEWS</button>
       </div>
     </div>
 
-    <!-- AIDA speech bubble -->
-    <div id="aida-hud">
-      <div id="aida-face">
-        <span class="eye"></span>
-        <span class="eye"></span>
-        <div id="aida-mouth"></div>
-      </div>
-      <div id="aida-bubble">
-        <div id="aida-label">AIDA · AI Data Guide</div>
-        <div id="aida-msg">Loading world...</div>
-        <div id="aida-btns">
-          <button id="btn-repeat">🔊 Repeat</button>
-          <button id="btn-skip">⏭ Skip</button>
-        </div>
+    <!-- AIDA AVATAR -->
+    <div id="aida-wrap">
+      <canvas id="aida-canvas" width="120" height="160"></canvas>
+      <div id="aida-name-tag">AIDA</div>
+    </div>
+
+    <!-- AIDA SPEECH BUBBLE -->
+    <div id="speech-bubble">
+      <div id="speech-zone-tag"></div>
+      <div id="speech-text">Initialising Data World...</div>
+      <div id="speech-btns">
+        <button id="btn-repeat">↺ REPEAT</button>
+        <button id="btn-stop">◼ STOP</button>
       </div>
     </div>
 
-    <!-- Info panel -->
+    <!-- INFO PANEL -->
     <div id="info-panel" class="hidden">
-      <button id="info-close">✕</button>
+      <div id="info-header">
+        <span id="info-title-txt"></span>
+        <button id="info-speak-btn" title="Read aloud">▶ HEAR</button>
+        <button id="info-close">✕</button>
+      </div>
       <div id="info-body"></div>
     </div>
 
-    <!-- Zone label -->
+    <!-- ZONE LABEL (centre top) -->
     <div id="zone-lbl"></div>
 
-    <!-- Controls -->
+    <!-- SECTION TOOLTIP (hover) -->
+    <div id="obj-tooltip" class="hidden"></div>
+
+    <!-- CONTROLS -->
     <div id="ctrl-hint">
-      <span>🖱 Drag to orbit</span>
-      <span>🖱 Scroll = zoom</span>
-      <span>👆 Click objects</span>
-      <span>⌨ 1-7 keys</span>
+      <span>🖱 Drag=Orbit</span>
+      <span>🖱 Scroll=Zoom</span>
+      <span>👆 Click=Inspect</span>
+      <span>1-7=Jump Zone</span>
     </div>
 
-    <!-- Start overlay -->
-    <div id="start-overlay">
-      <div id="start-box">
-        <div id="start-bot">🤖</div>
-        <h1>Ujas's Data World</h1>
-        <p>Interactive 3D cartoon portfolio<br/>built with AWS Data Engineering</p>
-        <p class="sh">🎵 Ambient music · 🔊 AI voice guide · 👆 Click everything</p>
-        <button id="start-btn">Enter World →</button>
+    <!-- NEWS PANEL -->
+    <div id="news-panel" class="hidden">
+      <div id="news-header">
+        <span>◈ LIVE DATA FEED</span>
+        <button id="news-close">✕</button>
       </div>
+      <div id="news-list"></div>
     </div>
 
-    <!-- Contact modal -->
+    <!-- CONTACT MODAL -->
     <div id="contact-modal" class="hidden">
       <div id="contact-box">
         <button id="contact-close">✕</button>
-        <h2>📬 Message Ujas</h2>
-        <p class="fc">Submits directly to Ujas's email via Google Forms</p>
-        <form id="gform" method="POST" target="gf_hidden">
-          <label>Name
-            <input type="text" id="f-name" required placeholder="Your name"/>
-          </label>
-          <label>Email
-            <input type="email" id="f-email" required placeholder="your@email.com"/>
-          </label>
-          <label>Message
-            <textarea id="f-msg" rows="4" required placeholder="Let's build something amazing..."></textarea>
-          </label>
-          <button type="submit" class="sbtn">🚀 Send Message</button>
-          <div id="form-ok"></div>
-        </form>
-        <div id="c-links">
-          <a href="mailto:ujasdubal@gmail.com">✉ ujasdubal@gmail.com</a>
-          <a href="https://www.linkedin.com/in/ujasdubal" target="_blank" rel="noopener">🔗 LinkedIn</a>
-          <span>📍 Ahmedabad, Gujarat, India</span>
+        <div id="contact-title">⟡ TRANSMIT MESSAGE</div>
+        <p id="contact-sub">Direct transmission to Ujas Dubal</p>
+        <div id="contact-form-wrap">
+          <label>IDENTIFICATION<input type="text" id="cf-name" placeholder="Your name" required/></label>
+          <label>COMM ADDRESS<input type="email" id="cf-email" placeholder="your@email.com" required/></label>
+          <label>TRANSMISSION<textarea id="cf-msg" rows="4" placeholder="Your message..." required></textarea></label>
+          <button id="cf-send">⟡ TRANSMIT →</button>
+          <div id="cf-status"></div>
+        </div>
+        <div id="contact-links">
+          <a href="mailto:ujasdubal@gmail.com" target="_blank" rel="noopener">✉ ujasdubal@gmail.com</a>
+          <a href="https://www.linkedin.com/in/ujasdubal" target="_blank" rel="noopener">◈ LinkedIn Profile</a>
+          <a href="https://github.com/ujas-dev" target="_blank" rel="noopener">⬡ GitHub</a>
+          <span>⬟ Ahmedabad, Gujarat, India</span>
         </div>
       </div>
     </div>
 
-    <!-- Hidden iframe for form submission -->
-    <iframe name="gf_hidden" id="gf_hidden" style="display:none" title="form target"></iframe>
+    <!-- START OVERLAY -->
+    <div id="start-overlay">
+      <div id="start-box">
+        <div id="start-grid"></div>
+        <div id="start-content">
+          <div id="start-logo">🤖</div>
+          <h1>UJAS.WORLD</h1>
+          <div id="start-sub">AWS Data Engineer · Technical Lead · 8.5+ Years</div>
+          <p>Tron-style interactive 3D data world<br/>with AI guide AIDA</p>
+          <div id="start-features">
+            <span>⬡ 3D Tron City</span>
+            <span>◈ AI Guide AIDA</span>
+            <span>◉ Live News Feed</span>
+            <span>▲ Voice Narration</span>
+          </div>
+          <button id="start-btn">▶ ENTER DATA WORLD</button>
+        </div>
+      </div>
+    </div>
 
   </div><!-- /hud -->
 
-  <!--
-    SCRIPT ORDER IS CRITICAL:
-    1. Three.js must load and execute first
-    2. data.js sets window.PD
-    3. world.js uses window.load event to guarantee both are ready
-  -->
+  <!-- Three.js from jsDelivr CDN — most reliable for GitHub Pages -->
   <script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
   <script src="assets/data.js"></script>
   <script src="assets/world.js"></script>

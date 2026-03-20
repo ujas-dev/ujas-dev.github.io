@@ -5,6 +5,20 @@
 
 const C = window.PORTFOLIO_CONFIG;
 
+// ─── SAFE SCROLL (renamed to navTo, never touches window.scrollTo) ───
+function navTo(hash) {
+  const el = document.querySelector(hash);
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ─── Wire hero buttons (don't use inline onclick) ─────────────
+// Remove onclick="scrollTo(...)" from your HTML and use this instead:
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('[data-nav]').forEach(btn => {
+    btn.addEventListener('click', () => navTo(btn.dataset.nav));
+  });
+});
+
 // ─── Populate from config ──────────────────────────────────────
 document.getElementById('year').textContent = new Date().getFullYear();
 document.getElementById('avatar-img').src = C.avatarUrl;
@@ -188,21 +202,27 @@ document.querySelectorAll('[data-holo]').forEach(card => {
 // ─── Keyboard Navigation ──────────────────────────────────────
 const SECTIONS = ['#hero','#about','#skills','#experience','#certifications','#projects','#contact'];
 let secIdx = 0;
+
 function jumpSec(i) {
   const c = Math.max(0, Math.min(SECTIONS.length - 1, i));
   secIdx = c;
-  scrollTo(SECTIONS[c]);
+  navTo(SECTIONS[c]);   // ← was scrollTo(), now navTo()
 }
+
 window.addEventListener('keydown', e => {
   const k = e.key;
   if (k === 'ArrowDown' || k === 's') { e.preventDefault(); jumpSec(secIdx + 1); }
-  else if (k === 'ArrowUp' || k === 'w') { e.preventDefault(); jumpSec(secIdx - 1); }
+  else if (k === 'ArrowUp'   || k === 'w') { e.preventDefault(); jumpSec(secIdx - 1); }
   else if (k >= '1' && k <= '7') jumpSec(parseInt(k) - 1);
   else if (k === 'Escape') jumpSec(0);
 });
+
 const secObserver = new IntersectionObserver(entries => {
-  entries.forEach(e => { if (e.isIntersecting) secIdx = parseInt(e.target.dataset.sec || 0); });
+  entries.forEach(e => {
+    if (e.isIntersecting) secIdx = parseInt(e.target.dataset.sec || 0);
+  });
 }, { threshold: 0.4 });
+
 document.querySelectorAll('.section[data-sec]').forEach(s => secObserver.observe(s));
 
 // ─── GSAP ScrollTrigger Reveals ──────────────────────────────

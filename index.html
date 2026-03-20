@@ -1,45 +1,370 @@
-<html>
-  <head>
-    <!-- HTML Meta Tags -->
-    <title>Ujas Dubal | Github</title>
-    <meta name="description" content="Testing purpose">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Ujas Dubal | AWS Data Engineer & Technical Lead</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <!-- Google / Search Engine Tags -->
-    <meta itemprop="name" content="Ujas Dubal | Github">
-    <meta itemprop="description" content="Testing purpose">
-    <meta itemprop="image" content="">
+  <!-- Primary SEO -->
+  <meta name="description" content="Portfolio of Ujas Dubal, AWS Data Engineer & Technical Lead with 8.5+ years of experience in Redshift, Glue, PySpark, and large-scale data pipelines on AWS." />
+  <meta name="keywords" content="Ujas Dubal, Data Engineer, AWS, Redshift, Glue, PySpark, SQL, Ahmedabad, India, ETL, Data Pipelines, Technical Lead" />
+  <meta name="author" content="Ujas Jayeshkumar Dubal" />
 
-    <!-- Facebook Meta Tags -->
-    <meta property="og:url" content="https://ujas-dev.github.io">
-    <meta property="og:type" content="website">
-    <meta property="og:title" content="Ujas Dubal | Github">
-    <meta property="og:description" content="Testing purpose">
-    <meta property="og:image" content="">
+  <!-- Open Graph -->
+  <meta property="og:title" content="Ujas Dubal | AWS Data Engineer" />
+  <meta property="og:description" content="AWS Data Engineer & Technical Lead building high-performance data platforms with Redshift, Glue, PySpark, and real-time analytics." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://ujas-dev.github.io/" />
+  <!-- Optional: add an image in /assets and reference it here -->
+  <!-- <meta property="og:image" content="https://ujas-dev.github.io/assets/og-image.png" /> -->
 
-    <!-- Twitter Meta Tags -->
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Ujas Dubal | Github">
-    <meta name="twitter:description" content="Testing purpose">
-    <meta name="twitter:image" content="">
-    <title>Ujas Dubal</title>
-  </head>
-  <style>
-    .main {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      /* bring your own prefixes */
-      transform: translate(-50%, -50%);
-    }
-    h1, h2, h3 {
-      text-align: center;
-    }
-  </style>
-  <body>
-    <div class="main">
-      <h1>Hello world!</h1>
-      <h2>Myself Ujas J. Dubal</h2>
-      <h3>I am working as Python + AWS Developer in TCS - Ahmedabad</h3>
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Ujas Dubal | AWS Data Engineer" />
+  <meta name="twitter:description" content="AWS Data Engineer & Technical Lead specializing in Redshift, Glue, PySpark & real-time analytics on AWS." />
+
+  <!-- JSON-LD Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    "name": "Ujas Jayeshkumar Dubal",
+    "jobTitle": "AWS Data Engineer & Technical Lead",
+    "url": "https://ujas-dev.github.io/",
+    "sameAs": [
+      "https://www.linkedin.com/in/ujasdubal"
+    ],
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "Ahmedabad",
+      "addressRegion": "Gujarat",
+      "addressCountry": "India"
+    },
+    "knowsAbout": [
+      "AWS Redshift",
+      "AWS Glue",
+      "PySpark",
+      "SQL",
+      "Data Engineering",
+      "ETL Pipelines",
+      "Real-time Analytics",
+      "Data Warehousing"
+    ]
+  }
+  </script>
+
+  <link rel="stylesheet" href="assets/main.css" />
+</head>
+<body>
+  <!-- Custom Cursor -->
+  <div class="cursor-dot"></div>
+  <div class="cursor-outline"></div>
+
+  <!-- 3D Canvas Background -->
+  <canvas id="bg-canvas"></canvas>
+
+  <!-- Overlay UI -->
+  <header class="top-nav">
+    <div class="logo" data-parallax>
+      <span class="logo-mark">{UD}</span>
+      <span class="logo-text">Ujas Dubal</span>
     </div>
-  </body>
+    <nav class="nav-links">
+      <a href="#hero" class="nav-link">Home</a>
+      <a href="#about" class="nav-link">About</a>
+      <a href="#skills" class="nav-link">Skills</a>
+      <a href="#experience" class="nav-link">Experience</a>
+      <a href="#projects" class="nav-link">Projects</a>
+      <a href="#contact" class="nav-link">Contact</a>
+    </nav>
+    <div class="nav-hint">Use ↑↓ / 1–6 to navigate</div>
+  </header>
+
+  <main>
+    <!-- HERO -->
+    <section id="hero" class="section hero" data-section-index="1">
+      <div class="hero-content">
+        <div class="hero-left">
+          <h1 class="hero-title">
+            <span class="gradient-text">Ujas Dubal</span>
+            <span class="hero-sub">AWS Data Engineer & Technical Lead</span>
+          </h1>
+          <p class="hero-tagline">
+            I design, build, and optimize cloud-native data platforms on AWS—turning billions of records into real‑time, trustworthy insights.
+          </p>
+          <div class="hero-cta">
+            <button class="btn primary-btn magnetic" data-scroll-target="#projects">
+              View Data Engineering Work
+            </button>
+            <button class="btn ghost-btn magnetic" data-scroll-target="#contact">
+              Contact Me
+            </button>
+          </div>
+          <div class="hero-meta">
+            <span>8.5+ years in software, 5+ in data engineering</span>
+            <span>AWS · Redshift · Glue · PySpark · SQL</span>
+          </div>
+        </div>
+        <div class="hero-right">
+          <div class="orbital-card" data-parallax>
+            <h2>Live Data Orbit</h2>
+            <p>
+              Orbiting cubes around the data planet represent streaming, batch, and real‑time analytics pipelines.
+              Hover and move your mouse to bend the orbit.
+            </p>
+            <ul class="hero-highlights">
+              <li>Automated ETL across billions of records on AWS Glue & Redshift.</li>
+              <li>Designed real-time analytics platform improving decision-making by 30%.</li>
+              <li>Led teams up to 9 engineers, mentoring on AWS & ETL best practices.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="scroll-indicator">
+        <span>Scroll or press ↓</span>
+        <div class="scroll-mouse"></div>
+      </div>
+    </section>
+
+    <!-- ABOUT -->
+    <section id="about" class="section about" data-section-index="2">
+      <div class="section-inner">
+        <header class="section-header">
+          <h2>About Me</h2>
+          <p>
+            Data engineer from Ahmedabad, India, obsessed with performance, reliability, and meaningful automation.
+          </p>
+        </header>
+        <div class="about-grid">
+          <div class="about-card" data-parallax>
+            <h3>Profile</h3>
+            <p>
+              Results-oriented AWS Data Engineer and Technical Lead with over 8.5 years of IT experience,
+              including 5 years in data engineering and 1.5 years in technical leadership roles. [file:1]
+            </p>
+            <p>
+              I specialize in designing scalable, high-performance data pipelines with AWS Redshift, Glue, Lambda,
+              AppFlow, S3, and modern ETL frameworks, focusing on data quality and real-time analytics. [file:1]
+            </p>
+          </div>
+          <div class="about-card">
+            <h3>Impact</h3>
+            <ul class="bullet-list">
+              <li>Cut manual ETL workload by 30% and improved processing speed by 25% using AWS Glue and Redshift. [file:1]</li>
+              <li>Reduced data retrieval latency by 20% with optimized PySpark transformations and partitioning. [file:1]</li>
+              <li>Improved report accuracy by 35% by resolving upstream data inconsistencies. [file:1]</li>
+              <li>Reduced support tickets by 20% via better validation, monitoring, and CloudWatch alerts. [file:1]</li>
+            </ul>
+          </div>
+          <div class="about-card">
+            <h3>Toolbox</h3>
+            <p>
+              Python (Pandas, PySpark), SQL, AWS (Redshift, Glue, Lambda, AppFlow, S3, RDS, Athena, CloudWatch),
+              Databricks, Airflow, GitHub Actions, CloudFormation, and more. [file:1]
+            </p>
+            <p>
+              I care about clean abstractions, reproducible pipelines, and observability baked into every layer.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SKILLS -->
+    <section id="skills" class="section skills" data-section-index="3">
+      <div class="section-inner">
+        <header class="section-header">
+          <h2>Core Skills & Stack</h2>
+          <p>What I use daily to ship reliable, scalable data systems.</p>
+        </header>
+        <div class="skills-grid">
+          <div class="skill-column">
+            <h3>Data Engineering</h3>
+            <ul>
+              <li>ETL / ELT development & orchestration</li>
+              <li>Data modeling & warehousing (Redshift)</li>
+              <li>Real-time & batch pipelines</li>
+              <li>API integrations (Salesforce UI, REST)</li>
+              <li>Performance tuning & cost optimization</li>
+            </ul>
+          </div>
+          <div class="skill-column">
+            <h3>Cloud & Platforms</h3>
+            <ul>
+              <li>AWS: Redshift, Glue, Lambda, AppFlow, S3, RDS, Athena, CloudWatch</li>
+              <li>Databricks & Apache Spark</li>
+              <li>DevOps: Git, GitHub Actions, AWS CodePipeline</li>
+            </ul>
+          </div>
+          <div class="skill-column">
+            <h3>Languages & Tools</h3>
+            <ul>
+              <li>Python, PySpark, SQL, Bash</li>
+              <li>Pandas, NumPy</li>
+              <li>PostgreSQL, Redshift, MySQL, DynamoDB</li>
+              <li>Jira, Confluence, VS Code</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- EXPERIENCE -->
+    <section id="experience" class="section experience" data-section-index="4">
+      <div class="section-inner">
+        <header class="section-header">
+          <h2>Experience</h2>
+          <p>From application engineering to leading AWS data platforms.</p>
+        </header>
+
+        <div class="timeline">
+          <article class="timeline-item">
+            <h3>Tata Consultancy Services (TCS)</h3>
+            <p class="timeline-meta">Data Engineer · Jul 2022 – Present · Gandhinagar, India</p>
+            <ul>
+              <li>Automated ETL across billions of records on AWS Glue, S3, and Redshift, cutting manual effort by 30%. [file:1]</li>
+              <li>Led teams (4–9 engineers) delivering real-time analytics platforms using AWS Glue, Lambda, S3, and RDS. [file:1]</li>
+              <li>Implemented REST APIs serving Salesforce HTML reports from live Redshift data. [file:1]</li>
+              <li>Implemented CI/CD with GitHub Actions, improving deployment efficiency by 34%. [file:1]</li>
+            </ul>
+          </article>
+
+          <article class="timeline-item">
+            <h3>Mind Inventory</h3>
+            <p class="timeline-meta">Software Engineer · Apr 2022 – Jun 2022 · Ahmedabad, India</p>
+            <ul>
+              <li>Improved data retrieval performance by 50% using advanced PostgreSQL indexing and partitioning. [file:1]</li>
+              <li>Built Python ETL scripts for efficient data handling and reporting. [file:1]</li>
+            </ul>
+          </article>
+
+          <article class="timeline-item">
+            <h3>Tiny ERP Pvt. Ltd.</h3>
+            <p class="timeline-meta">Application Engineer · Aug 2019 – Mar 2022 · Gandhinagar, India</p>
+            <ul>
+              <li>Developed secure bank payment APIs with SHA‑256 and AES‑256 + RSA encryption. [file:1]</li>
+              <li>Optimized processing modules, reducing load time by 25%. [file:1]</li>
+            </ul>
+          </article>
+
+          <article class="timeline-item">
+            <h3>Earlier Roles</h3>
+            <p class="timeline-meta">Associate / Jr. Software Engineer · 2015 – 2017 · Ahmedabad, India</p>
+            <ul>
+              <li>Built foundational skills in Python, backend development, and databases. [file:1]</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROJECTS -->
+    <section id="projects" class="section projects" data-section-index="5">
+      <div class="section-inner">
+        <header class="section-header">
+          <h2>Highlighted Projects</h2>
+          <p>Representative work in AWS data engineering and backend systems.</p>
+        </header>
+
+        <div class="project-grid">
+          <article class="project-card" data-parallax>
+            <h3>AWS Real-Time Analytics Platform</h3>
+            <p class="project-meta">Data Engineer · TCS</p>
+            <p>
+              Designed and led development of a real-time analytics platform using AWS Glue, Lambda,
+              S3, and RDS, enhancing decision-making capabilities by 30%. [file:1]
+            </p>
+            <ul>
+              <li>Streaming ingestion with Glue and Lambda.</li>
+              <li>Low-latency queries with optimized storage design.</li>
+              <li>Integrated with Salesforce for live business dashboards.</li>
+            </ul>
+          </article>
+
+          <article class="project-card">
+            <h3>Secure Banking Payment APIs</h3>
+            <p class="project-meta">Application Engineer · Tiny ERP</p>
+            <p>
+              Implemented highly secure payment APIs using SHA‑256 and AES‑256 + RSA encryption,
+              achieving 100% transaction data security. [file:1]
+            </p>
+            <ul>
+              <li>End-to-end encryption for sensitive financial data.</li>
+              <li>Robust error handling and audit logging.</li>
+            </ul>
+          </article>
+
+          <article class="project-card">
+            <h3>High-Performance ETL Pipelines</h3>
+            <p class="project-meta">Data Engineer · TCS</p>
+            <p>
+              Built and optimized ETL pipelines on AWS Glue and Redshift, reducing data retrieval
+              latency by 20% and boosting processing speed by 25%. [file:1]
+            </p>
+            <ul>
+              <li>Partitioning and bucketing strategies in PySpark.</li>
+              <li>Cost-optimized storage and compute patterns.</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- CONTACT -->
+    <section id="contact" class="section contact" data-section-index="6">
+      <div class="section-inner">
+        <header class="section-header">
+          <h2>Contact</h2>
+          <p>Open to data engineering and technical lead roles, remote or onsite.</p>
+        </header>
+        <div class="contact-grid">
+          <div class="contact-card">
+            <h3>Let’s build better data platforms</h3>
+            <p>
+              Whether you need high-throughput ETL, real-time analytics, or a scalable AWS data
+              platform, I can help you go from idea to production.
+            </p>
+            <div class="contact-meta">
+              <p><strong>Name:</strong> Ujas Jayeshkumar Dubal</p>
+              <p><strong>Location:</strong> Ahmedabad, Gujarat, India</p>
+              <p><strong>Email:</strong> <a href="mailto:ujasdubal@gmail.com">ujasdubal@gmail.com</a></p>
+              <p><strong>LinkedIn:</strong> <a href="https://www.linkedin.com/in/ujasdubal" target="_blank" rel="noopener">linkedin.com/in/ujasdubal</a></p>
+            </div>
+          </div>
+          <form class="contact-form" action="https://formspree.io/f/your-form-id" method="POST">
+            <h3>Quick message</h3>
+            <p class="form-note">Form is static-friendly. You can wire it to Formspree or your preferred backend.</p>
+            <div class="form-row">
+              <label for="name">Name</label>
+              <input id="name" name="name" type="text" required />
+            </div>
+            <div class="form-row">
+              <label for="email">Email</label>
+              <input id="email" name="_replyto" type="email" required />
+            </div>
+            <div class="form-row">
+              <label for="message">Message</label>
+              <textarea id="message" name="message" rows="4" required></textarea>
+            </div>
+            <button type="submit" class="btn primary-btn magnetic">
+              Send Message
+            </button>
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <span>© <span id="year"></span> Ujas Dubal · AWS Data Engineer</span>
+    <span>Built with HTML, CSS, JS, and a bit of 3D.</span>
+  </footer>
+
+  <!-- Scripts -->
+  <!-- For prod you can self-host these files in /assets if you prefer -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r152/three.min.js" integrity="" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="assets/main.js"></script>
+</body>
 </html>

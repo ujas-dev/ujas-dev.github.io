@@ -1,1 +1,25 @@
-theme: jekyll-theme-cayman
+title: "Ujas Dubal | AWS Data Engineer"
+description: "Official portfolio of Ujas Dubal, AWS Data Engineer & Technical Lead specializing in Redshift, Glue, PySpark, and large-scale data pipelines."
+url: "https://ujas-dev.github.io"
+author:
+  name: "Ujas Jayeshkumar Dubal"
+  email: "ujasdubal@gmail.com"
+  twitter: ""
+  linkedin: "https://www.linkedin.com/in/ujasdubal"
+theme: null
+markdown: kramdown
+plugins:
+  - jekyll-seo-tag
+  - jekyll-sitemap
+
+# SEO defaults
+permalink: pretty
+timezone: "Asia/Kolkata"
+
+defaults:
+  -
+    scope:
+      path: ""
+    values:
+      layout: null
+      lang: "en"

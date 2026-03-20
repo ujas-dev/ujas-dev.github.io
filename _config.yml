@@ -1,25 +1,100 @@
-title: "Ujas Dubal | AWS Data Engineer"
-description: "Official portfolio of Ujas Dubal, AWS Data Engineer & Technical Lead specializing in Redshift, Glue, PySpark, and large-scale data pipelines."
-url: "https://ujas-dev.github.io"
-author:
-  name: "Ujas Jayeshkumar Dubal"
-  email: "ujasdubal@gmail.com"
-  twitter: ""
-  linkedin: "https://www.linkedin.com/in/ujasdubal"
-theme: null
-markdown: kramdown
-plugins:
-  - jekyll-seo-tag
-  - jekyll-sitemap
+# ================================================================
+#  _config.yml — GitHub Pages / Jekyll configuration
+#  Portfolio: Ujas Jayeshkumar Dubal
+# ================================================================
 
-# SEO defaults
-permalink: pretty
-timezone: "Asia/Kolkata"
+# ── Site Identity ──────────────────────────────────────────────
+title:       "Ujas Dubal — AWS Data Engineer"
+description: "AWS Data Engineer and Technical Lead with 8.5+ years
+              building cloud-native data pipelines using Python,
+              PySpark, Redshift, Glue, Airflow and Databricks.
+              Based in Ahmedabad, Gujarat, India."
+author:      "Ujas Jayeshkumar Dubal"
+email:       "ujasdubal+portfolio@gmail.com"
+url:         "https://ujas-dev.github.io"
+baseurl:     ""
 
+# ── SEO / Social ───────────────────────────────────────────────
+lang:        "en-IN"
+locale:      "en_IN"
+timezone:    "Asia/Kolkata"
+
+twitter:
+  username:  "ujasdubal"
+  card:      summary_large_image
+
+social:
+  name:  "Ujas Jayeshkumar Dubal"
+  links:
+    - "https://www.linkedin.com/in/ujasdubal"
+    - "https://github.com/ujas-dev"
+
+# ── GitHub Pages — disable Jekyll processing ───────────────────
+# Our portfolio is a plain HTML file — we do NOT want Jekyll
+# to process, transform or wrap index.html in any layout.
+# This tells GitHub Pages to serve files exactly as-is.
+
+plugins: []
+
+# Exclude everything except the files we actually want served
+include:
+  - index.html
+  - README.md
+  - _config.yml
+  - assets/
+  - Ujas_Dubal_DataEngineer_8_5_Years_Exp.pdf
+  - .github/
+
+exclude:
+  - "*.sh"
+  - "*.py"
+  - "*.rb"
+  - Gemfile
+  - Gemfile.lock
+  - node_modules/
+  - vendor/
+  - .sass-cache/
+  - .jekyll-cache/
+  - .jekyll-metadata
+
+# ── Jekyll Build Settings ──────────────────────────────────────
+# Safe mode — disables custom plugins (required for GitHub Pages)
+safe:         true
+
+# Do not use a theme — we have our own full CSS
+theme:        ~
+
+# Disable Sass processing — we write plain CSS
+sass:
+  style: compressed
+
+# Do not generate a sitemap via jekyll-sitemap plugin
+# (our JSON-LD structured data handles SEO signals directly)
+
+# ── Markdown ───────────────────────────────────────────────────
+markdown:     kramdown
+kramdown:
+  input:      GFM
+  hard_wrap:  false
+
+# ── Collections (none needed — single-file portfolio) ──────────
+collections: {}
+
+# ── Defaults ───────────────────────────────────────────────────
 defaults:
-  -
-    scope:
+  - scope:
       path: ""
     values:
       layout: null
-      lang: "en"
+
+# ── Performance ────────────────────────────────────────────────
+# Disable liquid processing on all HTML files so GitHub Pages
+# does not try to parse {{ }} or {% %} tags inside index.html
+# (Three.js / JS template literals can conflict with Liquid)
+render_with_liquid: false
+
+# ── Analytics placeholder ─────────────────────────────────────
+# Uncomment and fill in if you add Google Analytics later
+# google_analytics: "G-XXXXXXXXXX"
+
+# ── END ────────────────────────────────────────────────────────
